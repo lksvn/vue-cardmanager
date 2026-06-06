@@ -1,0 +1,11 @@
+{
+  "vaultPath": "D:\\Obsidian Vaults\\GAMES\\MTG\\Cards",
+  "imagesPath": "D:\\Obsidian Vaults\\GAMES\\MTG\\Cards\\Images",
+  "groupsFile": "D:\\Obsidian Vaults\\GAMES\\MTG\\Cards\\card-manager\\groups.md",
+  "typesFile": "D:\\Obsidian Vaults\\GAMES\\MTG\\Cards\\card-manager\\types.md",
+  "collectionsFile": "D:\\Obsidian Vaults\\GAMES\\MTG\\Cards\\card-manager\\collections.md",
+  "typeMapping": {
+    "boss": "Token",
+    "event": "Token"
+  }
+}

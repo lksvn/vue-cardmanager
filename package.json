@@ -1,0 +1,19 @@
+{
+  "name": "vue-cardmanager-root",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+    "dev": "npm run dev --prefix client",
+    "server": "npm start --prefix server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "vite-plugin-vue-devtools": "^8.1.2"
+  }
+}

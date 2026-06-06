@@ -1,0 +1,506 @@
+[
+  {
+    "symbol": "{T}",
+    "loose_variant": null,
+    "english": "tap this permanent",
+    "local_path": "/symbols/T.svg"
+  },
+  {
+    "symbol": "{Q}",
+    "loose_variant": null,
+    "english": "untap this permanent",
+    "local_path": "/symbols/Q.svg"
+  },
+  {
+    "symbol": "{E}",
+    "loose_variant": null,
+    "english": "an energy counter",
+    "local_path": "/symbols/E.svg"
+  },
+  {
+    "symbol": "{P}",
+    "loose_variant": null,
+    "english": "modal budget pawprint",
+    "local_path": "/symbols/P.svg"
+  },
+  {
+    "symbol": "{PW}",
+    "loose_variant": null,
+    "english": "planeswalker",
+    "local_path": "/symbols/PW.svg"
+  },
+  {
+    "symbol": "{CHAOS}",
+    "loose_variant": null,
+    "english": "chaos",
+    "local_path": "/symbols/CHAOS.svg"
+  },
+  {
+    "symbol": "{A}",
+    "loose_variant": null,
+    "english": "an acorn counter",
+    "local_path": "/symbols/A.svg"
+  },
+  {
+    "symbol": "{TK}",
+    "loose_variant": null,
+    "english": "a ticket counter",
+    "local_path": "/symbols/TK.svg"
+  },
+  {
+    "symbol": "{X}",
+    "loose_variant": "X",
+    "english": "X generic mana",
+    "local_path": "/symbols/X.svg"
+  },
+  {
+    "symbol": "{Y}",
+    "loose_variant": "Y",
+    "english": "Y generic mana",
+    "local_path": "/symbols/Y.svg"
+  },
+  {
+    "symbol": "{Z}",
+    "loose_variant": "Z",
+    "english": "Z generic mana",
+    "local_path": "/symbols/Z.svg"
+  },
+  {
+    "symbol": "{0}",
+    "loose_variant": "0",
+    "english": "zero mana",
+    "local_path": "/symbols/0.svg"
+  },
+  {
+    "symbol": "{½}",
+    "loose_variant": "½",
+    "english": "one-half generic mana",
+    "local_path": "/symbols/½.svg"
+  },
+  {
+    "symbol": "{1}",
+    "loose_variant": "1",
+    "english": "one generic mana",
+    "local_path": "/symbols/1.svg"
+  },
+  {
+    "symbol": "{2}",
+    "loose_variant": "2",
+    "english": "two generic mana",
+    "local_path": "/symbols/2.svg"
+  },
+  {
+    "symbol": "{3}",
+    "loose_variant": "3",
+    "english": "three generic mana",
+    "local_path": "/symbols/3.svg"
+  },
+  {
+    "symbol": "{4}",
+    "loose_variant": "4",
+    "english": "four generic mana",
+    "local_path": "/symbols/4.svg"
+  },
+  {
+    "symbol": "{5}",
+    "loose_variant": "5",
+    "english": "five generic mana",
+    "local_path": "/symbols/5.svg"
+  },
+  {
+    "symbol": "{6}",
+    "loose_variant": "6",
+    "english": "six generic mana",
+    "local_path": "/symbols/6.svg"
+  },
+  {
+    "symbol": "{7}",
+    "loose_variant": "7",
+    "english": "seven generic mana",
+    "local_path": "/symbols/7.svg"
+  },
+  {
+    "symbol": "{8}",
+    "loose_variant": "8",
+    "english": "eight generic mana",
+    "local_path": "/symbols/8.svg"
+  },
+  {
+    "symbol": "{9}",
+    "loose_variant": "9",
+    "english": "nine generic mana",
+    "local_path": "/symbols/9.svg"
+  },
+  {
+    "symbol": "{10}",
+    "loose_variant": "10",
+    "english": "ten generic mana",
+    "local_path": "/symbols/10.svg"
+  },
+  {
+    "symbol": "{11}",
+    "loose_variant": "11",
+    "english": "eleven generic mana",
+    "local_path": "/symbols/11.svg"
+  },
+  {
+    "symbol": "{12}",
+    "loose_variant": "12",
+    "english": "twelve generic mana",
+    "local_path": "/symbols/12.svg"
+  },
+  {
+    "symbol": "{13}",
+    "loose_variant": "13",
+    "english": "thirteen generic mana",
+    "local_path": "/symbols/13.svg"
+  },
+  {
+    "symbol": "{14}",
+    "loose_variant": "14",
+    "english": "fourteen generic mana",
+    "local_path": "/symbols/14.svg"
+  },
+  {
+    "symbol": "{15}",
+    "loose_variant": "15",
+    "english": "fifteen generic mana",
+    "local_path": "/symbols/15.svg"
+  },
+  {
+    "symbol": "{16}",
+    "loose_variant": "16",
+    "english": "sixteen generic mana",
+    "local_path": "/symbols/16.svg"
+  },
+  {
+    "symbol": "{17}",
+    "loose_variant": "17",
+    "english": "seventeen generic mana",
+    "local_path": "/symbols/17.svg"
+  },
+  {
+    "symbol": "{18}",
+    "loose_variant": "18",
+    "english": "eighteen generic mana",
+    "local_path": "/symbols/18.svg"
+  },
+  {
+    "symbol": "{19}",
+    "loose_variant": "19",
+    "english": "nineteen generic mana",
+    "local_path": "/symbols/19.svg"
+  },
+  {
+    "symbol": "{20}",
+    "loose_variant": "20",
+    "english": "twenty generic mana",
+    "local_path": "/symbols/20.svg"
+  },
+  {
+    "symbol": "{100}",
+    "loose_variant": "100",
+    "english": "one hundred generic mana",
+    "local_path": "/symbols/100.svg"
+  },
+  {
+    "symbol": "{1000000}",
+    "loose_variant": "1000000",
+    "english": "one million generic mana",
+    "local_path": "/symbols/1000000.svg"
+  },
+  {
+    "symbol": "{∞}",
+    "loose_variant": "∞",
+    "english": "infinite generic mana",
+    "local_path": "/symbols/∞.svg"
+  },
+  {
+    "symbol": "{W/U}",
+    "loose_variant": null,
+    "english": "one white or blue mana",
+    "local_path": "/symbols/WU.svg"
+  },
+  {
+    "symbol": "{W/B}",
+    "loose_variant": null,
+    "english": "one white or black mana",
+    "local_path": "/symbols/WB.svg"
+  },
+  {
+    "symbol": "{B/R}",
+    "loose_variant": null,
+    "english": "one black or red mana",
+    "local_path": "/symbols/BR.svg"
+  },
+  {
+    "symbol": "{B/G}",
+    "loose_variant": null,
+    "english": "one black or green mana",
+    "local_path": "/symbols/BG.svg"
+  },
+  {
+    "symbol": "{U/B}",
+    "loose_variant": null,
+    "english": "one blue or black mana",
+    "local_path": "/symbols/UB.svg"
+  },
+  {
+    "symbol": "{U/R}",
+    "loose_variant": null,
+    "english": "one blue or red mana",
+    "local_path": "/symbols/UR.svg"
+  },
+  {
+    "symbol": "{R/G}",
+    "loose_variant": null,
+    "english": "one red or green mana",
+    "local_path": "/symbols/RG.svg"
+  },
+  {
+    "symbol": "{R/W}",
+    "loose_variant": null,
+    "english": "one red or white mana",
+    "local_path": "/symbols/RW.svg"
+  },
+  {
+    "symbol": "{G/W}",
+    "loose_variant": null,
+    "english": "one green or white mana",
+    "local_path": "/symbols/GW.svg"
+  },
+  {
+    "symbol": "{G/U}",
+    "loose_variant": null,
+    "english": "one green or blue mana",
+    "local_path": "/symbols/GU.svg"
+  },
+  {
+    "symbol": "{B/G/P}",
+    "loose_variant": null,
+    "english": "one black mana, one green mana, or 2 life",
+    "local_path": "/symbols/BGP.svg"
+  },
+  {
+    "symbol": "{B/R/P}",
+    "loose_variant": null,
+    "english": "one black mana, one red mana, or 2 life",
+    "local_path": "/symbols/BRP.svg"
+  },
+  {
+    "symbol": "{G/U/P}",
+    "loose_variant": null,
+    "english": "one green mana, one blue mana, or 2 life",
+    "local_path": "/symbols/GUP.svg"
+  },
+  {
+    "symbol": "{G/W/P}",
+    "loose_variant": null,
+    "english": "one green mana, one white mana, or 2 life",
+    "local_path": "/symbols/GWP.svg"
+  },
+  {
+    "symbol": "{R/G/P}",
+    "loose_variant": null,
+    "english": "one red mana, one green mana, or 2 life",
+    "local_path": "/symbols/RGP.svg"
+  },
+  {
+    "symbol": "{R/W/P}",
+    "loose_variant": null,
+    "english": "one red mana, one white mana, or 2 life",
+    "local_path": "/symbols/RWP.svg"
+  },
+  {
+    "symbol": "{U/B/P}",
+    "loose_variant": null,
+    "english": "one blue mana, one black mana, or 2 life",
+    "local_path": "/symbols/UBP.svg"
+  },
+  {
+    "symbol": "{U/R/P}",
+    "loose_variant": null,
+    "english": "one blue mana, one red mana, or 2 life",
+    "local_path": "/symbols/URP.svg"
+  },
+  {
+    "symbol": "{W/B/P}",
+    "loose_variant": null,
+    "english": "one white mana, one black mana, or 2 life",
+    "local_path": "/symbols/WBP.svg"
+  },
+  {
+    "symbol": "{W/U/P}",
+    "loose_variant": null,
+    "english": "one white mana, one blue mana, or 2 life",
+    "local_path": "/symbols/WUP.svg"
+  },
+  {
+    "symbol": "{C/W}",
+    "loose_variant": null,
+    "english": "one colorless mana or one white mana",
+    "local_path": "/symbols/CW.svg"
+  },
+  {
+    "symbol": "{C/U}",
+    "loose_variant": null,
+    "english": "one colorless mana or one blue mana",
+    "local_path": "/symbols/CU.svg"
+  },
+  {
+    "symbol": "{C/B}",
+    "loose_variant": null,
+    "english": "one colorless mana or one black mana",
+    "local_path": "/symbols/CB.svg"
+  },
+  {
+    "symbol": "{C/R}",
+    "loose_variant": null,
+    "english": "one colorless mana or one red mana",
+    "local_path": "/symbols/CR.svg"
+  },
+  {
+    "symbol": "{C/G}",
+    "loose_variant": null,
+    "english": "one colorless mana or one green mana",
+    "local_path": "/symbols/CG.svg"
+  },
+  {
+    "symbol": "{2/W}",
+    "loose_variant": null,
+    "english": "two generic mana or one white mana",
+    "local_path": "/symbols/2W.svg"
+  },
+  {
+    "symbol": "{2/U}",
+    "loose_variant": null,
+    "english": "two generic mana or one blue mana",
+    "local_path": "/symbols/2U.svg"
+  },
+  {
+    "symbol": "{2/B}",
+    "loose_variant": null,
+    "english": "two generic mana or one black mana",
+    "local_path": "/symbols/2B.svg"
+  },
+  {
+    "symbol": "{2/R}",
+    "loose_variant": null,
+    "english": "two generic mana or one red mana",
+    "local_path": "/symbols/2R.svg"
+  },
+  {
+    "symbol": "{2/G}",
+    "loose_variant": null,
+    "english": "two generic mana or one green mana",
+    "local_path": "/symbols/2G.svg"
+  },
+  {
+    "symbol": "{H}",
+    "loose_variant": null,
+    "english": "one colored mana or two life",
+    "local_path": "/symbols/H.svg"
+  },
+  {
+    "symbol": "{W/P}",
+    "loose_variant": null,
+    "english": "one white mana or two life",
+    "local_path": "/symbols/WP.svg"
+  },
+  {
+    "symbol": "{U/P}",
+    "loose_variant": null,
+    "english": "one blue mana or two life",
+    "local_path": "/symbols/UP.svg"
+  },
+  {
+    "symbol": "{B/P}",
+    "loose_variant": null,
+    "english": "one black mana or two life",
+    "local_path": "/symbols/BP.svg"
+  },
+  {
+    "symbol": "{R/P}",
+    "loose_variant": null,
+    "english": "one red mana or two life",
+    "local_path": "/symbols/RP.svg"
+  },
+  {
+    "symbol": "{G/P}",
+    "loose_variant": null,
+    "english": "one green mana or two life",
+    "local_path": "/symbols/GP.svg"
+  },
+  {
+    "symbol": "{C/P}",
+    "loose_variant": null,
+    "english": "one colorless mana or two life",
+    "local_path": "/symbols/CP.svg"
+  },
+  {
+    "symbol": "{HW}",
+    "loose_variant": null,
+    "english": "one-half white mana",
+    "local_path": "/symbols/HW.svg"
+  },
+  {
+    "symbol": "{HR}",
+    "loose_variant": null,
+    "english": "one-half red mana",
+    "local_path": "/symbols/HR.svg"
+  },
+  {
+    "symbol": "{W}",
+    "loose_variant": "W",
+    "english": "one white mana",
+    "local_path": "/symbols/W.svg"
+  },
+  {
+    "symbol": "{U}",
+    "loose_variant": "U",
+    "english": "one blue mana",
+    "local_path": "/symbols/U.svg"
+  },
+  {
+    "symbol": "{B}",
+    "loose_variant": "B",
+    "english": "one black mana",
+    "local_path": "/symbols/B.svg"
+  },
+  {
+    "symbol": "{R}",
+    "loose_variant": "R",
+    "english": "one red mana",
+    "local_path": "/symbols/R.svg"
+  },
+  {
+    "symbol": "{G}",
+    "loose_variant": "G",
+    "english": "one green mana",
+    "local_path": "/symbols/G.svg"
+  },
+  {
+    "symbol": "{C}",
+    "loose_variant": "C",
+    "english": "one colorless mana",
+    "local_path": "/symbols/C.svg"
+  },
+  {
+    "symbol": "{S}",
+    "loose_variant": "S",
+    "english": "one snow mana",
+    "local_path": "/symbols/S.svg"
+  },
+  {
+    "symbol": "{L}",
+    "loose_variant": "L",
+    "english": "one mana from a legendary source",
+    "local_path": "/symbols/L.svg"
+  },
+  {
+    "symbol": "{D}",
+    "loose_variant": "D",
+    "english": "one potential land drop",
+    "local_path": "/symbols/D.svg"
+  }
+]
