@@ -60,9 +60,8 @@
         <div class="card-info">
           <h3>{{ card.name }}</h3>
           <p class="meta">{{ card.Collection }}</p>
-          <p class="type">{{ card.Type }}</p>
           <div class="tags">
-            <span v-for="g in card.Groups" :key="g" class="tag">{{ g }}</span>
+            <span v-for="g in card.Group" :key="g" class="tag">{{ g }}</span>
           </div>
         </div>
         <div class="card-actions">
@@ -108,7 +107,7 @@ const filteredCards = computed(() => {
     const matchesSearch = !filters.search || card.name.toLowerCase().includes(filters.search.toLowerCase());
     const matchesCollection = !filters.collection || card.Collection === filters.collection;
     const matchesType = !filters.type || card.Type === filters.type;
-    const matchesGroup = !filters.group || (card.Groups && card.Groups.includes(filters.group));
+    const matchesGroup = !filters.group || (card.Group && card.Group.includes(filters.group));
     
     return matchesSearch && matchesCollection && matchesType && matchesGroup;
   });
@@ -293,13 +292,17 @@ onMounted(async () => {
 .card-info h3 {
   margin: 0 0 5px 0;
   font-size: 16px;
+  height: 42px;
+  overflow: hidden;
   color: #2d3748;
 }
 
 .meta {
   font-size: 12px;
   color: #718096;
-  margin-bottom: 5px;
+  height: 32px;
+  overflow: hidden;
+  margin:0 0 5px 0;
 }
 
 .type {

@@ -280,6 +280,7 @@ const formatOracleText = (text) => {
 const addNewGroup = () => {
     if (newGroupName.value && !selectedGroups.value.includes(newGroupName.value)) {
         selectedGroups.value.push(newGroupName.value);
+        props.tags.groups.push(newGroupName.value);
         newGroupName.value = '';
     }
 };

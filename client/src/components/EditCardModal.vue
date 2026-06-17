@@ -22,7 +22,7 @@
                 type="checkbox" 
                 :id="'edit-group-' + g" 
                 :value="g" 
-                v-model="editData.Groups" 
+                v-model="editData.Group" 
               />
               <label :for="'edit-group-' + g">{{ g }}</label>
             </div>
@@ -69,7 +69,7 @@ const emit = defineEmits(['close', 'updated']);
 
 const editData = reactive({
   Collection: props.card.Collection,
-  Groups: props.card.Groups || [],
+  Group: props.card.Group || [],
   Type: props.card.Type
 });
 
@@ -83,8 +83,8 @@ watch(() => props.tags.collections, (newCollections) => {
   }
 });
 
-watch(() => props.tags.groups, (newGroups) => {
-  editData.Groups = editData.Groups.filter(g => newGroups.includes(g));
+watch(() => props.tags.group, (newGroups) => {
+  editData.Group = editData.Group.filter(g => newGroups.includes(g));
 });
 
 watch(() => props.tags.types, (newTypes) => {
@@ -94,8 +94,8 @@ watch(() => props.tags.types, (newTypes) => {
 });
 
 const addNewGroup = () => {
-    if (newGroupName.value && !editData.Groups.includes(newGroupName.value)) {
-        editData.Groups.push(newGroupName.value);
+    if (newGroupName.value && !editData.Group.includes(newGroupName.value)) {
+        editData.Group.push(newGroupName.value);
         newGroupName.value = '';
     }
 };

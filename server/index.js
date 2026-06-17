@@ -203,8 +203,8 @@ app.get('/api/cards', async (req, res) => {
       
       // Normalize groups: Prefer Groups (array), fallback to Group (string)
       let cardGroups = [];
-      if (Array.isArray(data.Groups)) {
-        cardGroups = data.Groups;
+      if (Array.isArray(data.Group)) {
+        cardGroups = data.Group;
       } else if (data.Group) {
         cardGroups = [data.Group];
       }
@@ -213,7 +213,7 @@ app.get('/api/cards', async (req, res) => {
         filename: file,
         name: file.replace('.md', ''),
         ...data,
-        Groups: cardGroups // Always provide an array to the frontend
+        Group: cardGroups // Always provide an array to the frontend
       });
     }
 
@@ -464,10 +464,15 @@ app.post('/api/cards/save', async (req, res) => {
     }
 
     // 1. Prepare Data
-    const cardName = card.name.replace(/[<>:"/\\|?*]/g, ''); // Basic sanitization
+    const filename = card.name;
+    const clearName = card.name
+      .replace(/[<>:"/\\|?*#%&{}'@!`~$+(),]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
     const cardNumber = card.collector_number;
-    const filename = `${cardName} - ${cardNumber}`;
-    const imgFilename = `${filename}.jpg`;
+    const imgFilename = `${card.set}-${cardNumber}-${clearName}.jpg`;
     
     // Collection Name: custom override or automated set_name (set_code)
     const collectionName = customCollection || `${card.set_name} (${card.set.toUpperCase()})`;
@@ -507,7 +512,7 @@ app.post('/api/cards/save', async (req, res) => {
       Collection: collectionName,
       Type: cardType,
       Number: cardNumber,
-      Groups: groups || [],
+      Group: groups || [],
       Cover: `[[${imgFilename}]]`
     };
 
@@ -518,7 +523,7 @@ app.post('/api/cards/save', async (req, res) => {
     const mdPath = path.join(config.vaultPath, `${filename}.md`);
     await fs.writeFile(mdPath, mdContent, 'utf8');
 
-    res.json({ message: `Card ${filename} saved successfully`, filename: `${filename}.md` });
+    res.json({ message: `Card ${card.name} saved successfully`, filename: `${filename}.md` });
   } catch (error) {
     console.error('Save failed:', error);
     res.status(500).json({ error: 'Failed to save card' });
