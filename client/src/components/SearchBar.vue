@@ -14,6 +14,11 @@
     </div>
     
     <div class="view-controls">
+      <select v-model="order" @change="emitOptions" aria-label="Order results">
+        <option value="name">Name</option><option value="set">Set</option><option value="released">Release</option><option value="cmc">Mana value</option><option value="rarity">Rarity</option>
+      </select>
+      <select v-model="dir" @change="emitOptions" aria-label="Sort direction"><option value="auto">Auto</option><option value="asc">Ascending</option><option value="desc">Descending</option></select>
+      <select v-model="unique" @change="emitOptions" aria-label="Unique results"><option value="cards">Cards</option><option value="prints">Prints</option><option value="art">Art</option></select>
       <button 
         @click="$emit('update:viewMode', 'grid')" 
         :class="{ active: viewMode === 'grid' }"
@@ -42,11 +47,16 @@ const props = defineProps({
     _query: {
         type: String,
         default: ''
-    }
+    },
+    options: { type: Object, default: () => ({ order: 'name', dir: 'auto', unique: 'cards' }) }
 });
 
-const emit = defineEmits(['search', 'update:viewMode']);
+const emit = defineEmits(['search', 'update:viewMode', 'update:options']);
 const query = props._query ? ref(props._query) : ref('');
+const order = ref(props.options.order || 'name');
+const dir = ref(props.options.dir || 'auto');
+const unique = ref(props.options.unique || 'cards');
+const emitOptions = () => emit('update:options', { order: order.value, dir: dir.value, unique: unique.value });
 
 watch(() => props._query, (newQuery) => {
     if(newQuery !== query.value) {
@@ -121,5 +131,8 @@ const handleSearch = () => {
 
 .view-controls {
   display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
+.view-controls select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
 </style>

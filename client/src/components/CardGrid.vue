@@ -7,6 +7,7 @@
 			@click="$emit('select', card)"
 			:title="card.name + (card.set_name ? ' - ' + card.set_name : '')"
 		>
+			<div v-if="card.isSaved" class="saved-badge" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></div>
 			<div class="img-wrapper">
 				<img 
 					:src="getCardImage(card)" 
@@ -17,6 +18,7 @@
 			</div>
 			<div class="card-info">
 				<p class="card-name">{{ card.name }} <span>({{ card.set }})</span></p>
+				<button class="quick-add" :disabled="card.isSaved" @click.stop="$emit('quick-add', card)">{{ card.isSaved ? 'Already saved' : 'Quick add' }}</button>
 			</div>
 		</div>
 	</div>
@@ -30,7 +32,7 @@ const props = defineProps({
 	}
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'quick-add']);
 const getCardImage = (card) => {
 	if (card.image_uris && card.image_uris.large) {
 		return card.image_uris.large;
@@ -50,6 +52,7 @@ const getCardImage = (card) => {
 }
 
 .card-item {
+  position: relative;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.25s;
   border-radius: 12px;
@@ -89,4 +92,6 @@ const getCardImage = (card) => {
   overflow: hidden;
 }
 .card-name span {text-transform: uppercase;}
+.quick-add{margin-top:8px;border:1px solid #3182ce;background:white;color:#3182ce;border-radius:4px;padding:5px 10px;cursor:pointer}
+.quick-add:disabled{border-color:#38a169;color:#276749;cursor:default}.saved-badge{position:absolute;z-index:1;top:9px;left:9px;max-width:calc(100% - 34px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#276749;color:white;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;box-shadow:0 2px 6px #0005}
 </style>

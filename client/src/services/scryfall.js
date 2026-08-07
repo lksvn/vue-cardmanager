@@ -1,6 +1,9 @@
 	import axios from 'axios';
 
 	const BASE_URL = 'https://api.scryfall.com';
+	const paperOnlyQuery = (query) => /(^|\s)game:paper(?=\s|$)/i.test(query)
+		? query
+		: `${query} game:paper`;
 
 	export const scryfallService = {
 	/**
@@ -8,11 +11,12 @@
 	 * @param {string} query - The search query (e.g., card name, type, etc.)
 	 * @returns {Promise<Array>} - A promise that resolves to an array of card objects.
 	 */
-	async searchCards(query) {
+	async searchCards(query, options = {}) {
 		if (!query) return { data: [], has_more: false, next_page: null };
 		try {
 			const response = await axios.get(`${BASE_URL}/cards/search`, {
-				params: { q: query }
+				params: { ...(options.params || {}), q: paperOnlyQuery(query) },
+				signal: options.signal
 			});
 			return {
 				data: response.data.data,
@@ -74,7 +78,7 @@
 	async getCardPrints(oracleId, cardName) {
 		try {
 			const response = await axios.get(`${BASE_URL}/cards/search`, {
-				params: { q: `!"${cardName}" oracleid:${oracleId} unique:prints` }
+				params: { q: paperOnlyQuery(`!"${cardName}" oracleid:${oracleId} unique:prints`) }
 			});
 			return response.data;
 		} catch (error) {

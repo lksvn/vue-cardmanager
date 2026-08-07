@@ -9,6 +9,10 @@
             <input v-model="config.vaultPath" type="text" placeholder="C:\Users\...\Vault" />
         </div>
         <div class="form-item">
+            <label>Full Obsidian Vault Path (required for migration):</label>
+            <input v-model="config.obsidianVaultPath" type="text" placeholder="C:\Users\...\Vault" />
+        </div>
+        <div class="form-item">
             <label>Images Folder Path:</label>
             <input v-model="config.imagesPath" type="text" placeholder="C:\Users\...\Vault\Images" />
         </div>
@@ -24,6 +28,10 @@
             <label>collections.md File Path:</label>
             <input v-model="config.collectionsFile" type="text" />
         </div>
+        <div class="form-item">
+            <label>Obsidian Cards Base File:</label>
+            <input v-model="config.baseFile" type="text" placeholder="C:\Users\...\Cards List.base" />
+        </div>
 
         <div class="actions">
             <button @click="saveSettings" :disabled="saving" class="btn btn-primary">
@@ -31,6 +39,9 @@
             </button>
         </div>
     </div>
+
+    <MigrationPanel :vault-path="config.obsidianVaultPath" :schema-version="config.schemaVersion" @completed="refreshTags" />
+    <CollectionAudit />
 
     <div class="settings-group">
         <h3>Type Mapping</h3>
@@ -60,8 +71,14 @@
         <div class="header-with-action">
             <h3>Tag Manager</h3>
             <div class="tag-actions-header">
-            <button @click="rebuildCollections" :disabled="rebuilding" class="btn btn-secondary btn-small">
-                {{ rebuilding ? 'Rebuilding...' : 'Rebuild Collections' }}
+            <button
+              v-for="tagType in rebuildTagTypes"
+              :key="tagType.type"
+              @click="rebuildTags(tagType)"
+              :disabled="rebuildingType !== null"
+              class="btn btn-secondary btn-small"
+            >
+              {{ rebuildingType === tagType.type ? 'Rebuilding...' : `Rebuild ${tagType.label}` }}
             </button>
             <button @click="refreshTags" class="btn btn-secondary btn-small">Refresh Files</button>
             </div>
@@ -73,8 +90,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { serverService } from '../services/server';
+import { apiErrorMessage, serverService } from '../services/server';
 import TagManager from './TagManager.vue';
+import MigrationPanel from './MigrationPanel.vue';
+import CollectionAudit from './CollectionAudit.vue';
+import { useUiStore } from '../stores/ui';
 
 const config = ref({
   vaultPath: '',
@@ -82,16 +102,25 @@ const config = ref({
   groupsFile: '',
   typesFile: '',
   collectionsFile: '',
+  obsidianVaultPath: '',
+  baseFile: '',
+  schemaVersion: 1,
   typeMapping: {}
 });
 
 const newScryType = ref('');
 const newPrefType = ref('');
 const saving = ref(false);
-const rebuilding = ref(false);
+const rebuildingType = ref(null);
+const rebuildTagTypes = [
+  { type: 'collections', label: 'Collections' },
+  { type: 'groups', label: 'Groups' },
+  { type: 'types', label: 'Types' }
+];
 const message = ref('');
 const messageType = ref('');
 const tagManagerRef = ref(null);
+const ui = useUiStore();
 
 const emit = defineEmits(['refresh-tags']);
 
@@ -140,21 +169,23 @@ const refreshTags = () => {
   emit('refresh-tags');
 };
 
-const rebuildCollections = async () => {
-  if (!confirm('This will rescan all your cards and rewrite your collections list. Continue?')) return;
+const rebuildTags = async ({ type, label }) => {
+  if (!await ui.confirm(`Rescan every card and rewrite the ${label.toLowerCase()} list?`)) return;
   
-  rebuilding.value = true;
+  rebuildingType.value = type;
   message.value = '';
   try {
-    const result = await serverService.rebuildCollections();
-    message.value = `${result.message} (${result.count} Collections found)`;
+    const result = type === 'collections'
+      ? await serverService.rebuildCollections()
+      : await serverService.rebuildTags(type);
+    message.value = `${result.message} (${result.count} ${label.toLowerCase()} found)`;
     messageType.value = 'success';
     refreshTags();
   } catch (error) {
-    message.value = 'Failed to rebuild collections.';
+    message.value = apiErrorMessage(error, `Failed to rebuild ${label.toLowerCase()}.`);
     messageType.value = 'error';
   } finally {
-    rebuilding.value = false;
+    rebuildingType.value = null;
     setTimeout(() => { message.value = ''; }, 5000);
   }
 };

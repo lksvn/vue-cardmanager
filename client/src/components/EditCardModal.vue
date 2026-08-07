@@ -8,13 +8,6 @@
 
       <div class="edit-form">
         <div class="form-item">
-          <label>Collection:</label>
-          <select v-model="editData.Collection">
-            <option v-for="c in tags.collections" :key="c" :value="c">{{ c }}</option>
-          </select>
-        </div>
-
-        <div class="form-item">
           <label>Groups:</label>
           <div class="groups-list">
             <div v-for="g in tags.groups" :key="g" class="group-checkbox">
@@ -22,7 +15,7 @@
                 type="checkbox" 
                 :id="'edit-group-' + g" 
                 :value="g" 
-                v-model="editData.Group" 
+                v-model="editData.Groups"
               />
               <label :for="'edit-group-' + g">{{ g }}</label>
             </div>
@@ -59,6 +52,7 @@
 <script setup>
 import { ref, reactive, watch } from 'vue';
 import { serverService } from '../services/server';
+import { useUiStore } from '../stores/ui';
 
 const props = defineProps({
   card: { type: Object, required: true },
@@ -68,23 +62,16 @@ const props = defineProps({
 const emit = defineEmits(['close', 'updated']);
 
 const editData = reactive({
-  Collection: props.card.Collection,
-  Group: props.card.Group || [],
+  Groups: props.card.Groups || props.card.Group || [],
   Type: props.card.Type
 });
 
 const newGroupName = ref('');
 const saving = ref(false);
+const ui = useUiStore();
 
-// Prune selections if they are removed from global tags
-watch(() => props.tags.collections, (newCollections) => {
-  if (editData.Collection && !newCollections.includes(editData.Collection)) {
-    editData.Collection = '';
-  }
-});
-
-watch(() => props.tags.group, (newGroups) => {
-  editData.Group = editData.Group.filter(g => newGroups.includes(g));
+watch(() => props.tags.groups, (newGroups) => {
+  editData.Groups = editData.Groups.filter(g => newGroups.includes(g));
 });
 
 watch(() => props.tags.types, (newTypes) => {
@@ -94,8 +81,8 @@ watch(() => props.tags.types, (newTypes) => {
 });
 
 const addNewGroup = () => {
-    if (newGroupName.value && !editData.Group.includes(newGroupName.value)) {
-        editData.Group.push(newGroupName.value);
+    if (newGroupName.value && !editData.Groups.includes(newGroupName.value)) {
+        editData.Groups.push(newGroupName.value);
         newGroupName.value = '';
     }
 };
@@ -107,7 +94,7 @@ const saveChanges = async () => {
     emit('updated');
     emit('close');
   } catch (error) {
-    alert('Failed to update card');
+    ui.notify('Failed to update card', 'error');
   } finally {
     saving.value = false;
   }

@@ -1,4 +1,4 @@
-import { serverService } from './server';
+import { apiAssetUrl, serverService } from './server';
 
 let symbolsMap = null;
 
@@ -22,9 +22,25 @@ export const symbolService = {
     return text.replace(/\{([^{}]+)\}/g, (match) => {
       const localPath = symbolsMap.get(match);
       if (localPath) {
-        return `<img src="http://localhost:3001${localPath}" class="ms ms-cost" alt="${match}" style="height: 0.9em; vertical-align: middle; margin: 0 1px;" />`;
+        return `<img src="${apiAssetUrl(localPath)}" class="ms ms-cost" alt="${match}" style="height: 0.9em; vertical-align: middle; margin: 0 1px;" />`;
       }
       return match;
     });
+  },
+
+  tokenize(text) {
+    if (!text) return [];
+    const tokens = [];
+    let cursor = 0;
+    for (const match of text.matchAll(/\{([^{}]+)\}/g)) {
+      if (match.index > cursor) tokens.push({ type: 'text', value: text.slice(cursor, match.index) });
+      const localPath = symbolsMap?.get(match[0]);
+      tokens.push(localPath
+        ? { type: 'symbol', value: match[0], src: apiAssetUrl(localPath) }
+        : { type: 'text', value: match[0] });
+      cursor = match.index + match[0].length;
+    }
+    if (cursor < text.length) tokens.push({ type: 'text', value: text.slice(cursor) });
+    return tokens;
   }
 };

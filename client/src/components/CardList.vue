@@ -7,6 +7,7 @@
           <th>Type</th>
           <th>Set</th>
           <th>Rarity</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -20,6 +21,7 @@
           <td>{{ card.type_line }}</td>
           <td><img v-if="card.setIcon" :src="card.setIcon" class="set-icon" :alt="card.set_name" /> {{ card.set_name }} ({{ card.set.toUpperCase() }})</td>
           <td :class="['rarity', card.rarity]">{{ card.rarity }}</td>
+          <td><span v-if="card.isSaved" class="saved-label" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></span><button v-else class="quick-add" @click.stop="$emit('quick-add', card)">Quick add</button></td>
         </tr>
       </tbody>
     </table>
@@ -34,7 +36,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'quick-add']);
 </script>
 
 <style scoped>
@@ -86,4 +88,6 @@ th {
 .uncommon { color: #476291; font-weight: bold; }
 .rare { color: #b7791f; }
 .mythic { color: #c53030; }
+.quick-add{border:1px solid #3182ce;background:white;color:#3182ce;border-radius:4px;padding:5px 10px;cursor:pointer}
+.saved-label{display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#276749;font-weight:700}
 </style>

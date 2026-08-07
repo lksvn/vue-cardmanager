@@ -21,21 +21,33 @@
                 
             <div class="detail-text">
                 <div class="detail-wrapper">
-                    <template v-if="card.layout === 'normal' || card.layout === 'planar'">
+                    <template v-if="['normal', 'planar', 'saga'].includes(card.layout)">
                         <h2>
-                            <span>{{ card.name }} <span class="mana-cost" v-html="formatSymbols(card.mana_cost)"></span></span>
+                            <span>{{ card.name }} <SymbolText class="mana-cost" :text="card.mana_cost" /></span>
                             <small>{{ card.flavor_name }}</small>
                         </h2>
                         <p class="type-line">{{ card.type_line }}</p>
                         
-                        <div class="oracle-text" v-html="formatOracleText(card.oracle_text)"></div>
+                        <div class="oracle-text"><SagaText v-if="isSaga(card)" :text="card.oracle_text" /><SymbolText v-else :text="card.oracle_text" /></div>
                     </template>
                 
+                    <template v-else-if="isAdventure">
+                        <div class="adventure-faces">
+                            <section v-for="(face, index) in card.card_faces" :key="face.name" :class="['adventure-face', { spell: index === 1 }]">
+                                <span class="face-label">{{ index === 0 ? 'Permanent' : 'Adventure' }}</span>
+                                <h3>{{ face.name }} <SymbolText class="mana-cost" :text="face.mana_cost" /></h3>
+                                <p class="type-line">{{ face.type_line }}</p>
+                                <div class="oracle-text" v-if="face.oracle_text"><SymbolText :text="face.oracle_text" /></div>
+                                <p v-if="face.flavor_text" class="flavor-text">{{ face.flavor_text }}</p>
+                            </section>
+                        </div>
+                    </template>
+
                     <template v-else-if="isFlippable">
                         <div v-for="face in card.card_faces" style="margin-bottom: 20px;">
-                            <h3>{{ face.name }} <span class="mana-cost" v-html="formatSymbols(face.mana_cost)"></span></h3>
+                            <h3>{{ face.name }} <SymbolText class="mana-cost" :text="face.mana_cost" /></h3>
                             <p class="type-line">{{ face.type_line }}</p>
-                            <div class="oracle-text" v-if="face.oracle_text" v-html="formatOracleText(face.oracle_text)"></div>  
+                            <div class="oracle-text" v-if="face.oracle_text"><SagaText v-if="isSaga(face)" :text="face.oracle_text" /><SymbolText v-else :text="face.oracle_text" /></div>
                         </div>
                     </template>
 
@@ -88,7 +100,7 @@
                         :disabled="saving" 
                         class="btn btn-add"
                     >
-                        {{ saving ? 'Saving...' : 'Add to Obsidian Vault' }}
+                        {{ saving ? 'Saving...' : card.isSaved ? 'Update Saved Card' : 'Add to Obsidian Vault' }}
                     </button>
                     <p v-if="statusMsg" :class="['status-msg', statusType]">{{ statusMsg }}</p>
                 </div>
@@ -101,19 +113,21 @@
                         <small>#{{ card.collector_number }} &bull; {{ formattedFinishes }}</small>
                     </div>
                 </div>
-                <h3 style="margin-bottom:10px;">Other Prints</h3>
-                <ul>
-                    <li 
-                        v-for="print in prints.items" 
-                        :key="print.id" 
-                        @click="searchPrint(print)"
-                        style="cursor: pointer;"
-                    >
-                        {{ print.set_name }} #{{ print.collector_number }}
-                    </li>
-                    <li v-if="prints.total > 8">And more {{ prints.total - 8 }} prints</li>
-                </ul>
-                <div @click="showAllPrints(card.oracle_id, card.name)" style="cursor: pointer;text-align:center;border-top:1px solid black">View All prints</div>
+                <div class="prints-heading"><h3>Other Prints</h3><span v-if="prints.total">{{ prints.total }}</span></div>
+                <div v-if="printsLoading" class="prints-state">Loading printings...</div>
+                <div v-else-if="prints.items?.length" class="prints-grid">
+                    <button v-for="print in prints.items" :key="print.id" class="print-card" @click="searchPrint(print)">
+                        <img :src="getPrintImage(print)" :alt="print.name" loading="lazy" />
+                        <span class="print-info">
+                            <strong>{{ print.set_name }}</strong>
+                            <span class="print-set"><img :src="getPrintSetIcon(print)" alt="" />{{ print.set.toUpperCase() }} #{{ print.collector_number }}</span>
+                            <small>{{ formatReleaseDate(print.released_at) }} · {{ print.rarity }}</small>
+                            <small>{{ formatPrintFinishes(print.finishes) }}</small>
+                        </span>
+                    </button>
+                </div>
+                <div v-else class="prints-state">No other paper printings found.</div>
+                <button v-if="prints.total > prints.items?.length" @click="showAllPrints(card.oracle_id, card.name)" class="view-all-prints">View all {{ prints.total }} prints</button>
             </div>
         </div>
     </div>
@@ -122,11 +136,12 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
-import { serverService } from '../services/server';
-import { symbolService } from '../services/symbols';
+import { apiAssetUrl, apiErrorMessage, serverService } from '../services/server';
 import { scryfallService } from '../services/scryfall';
+import SymbolText from './SymbolText.vue';
+import SagaText from './SagaText.vue';
 
-const emit = defineEmits(['close', 'save-success', 'update:search']);
+const emit = defineEmits(['close', 'save-success', 'update:search', 'select-print']);
 const props = defineProps({
     card: {
         type: Object,
@@ -145,19 +160,38 @@ const newGroupName = ref('');
 const saving = ref(false);
 const statusMsg = ref('');
 const statusType = ref('');
+const typeMapping = ref({});
+const isAdventure = computed(() => props.card.layout === 'adventure' && props.card.card_faces?.length >= 2);
+const isSaga = cardOrFace => /(^|\s|—)Saga($|\s|—)/i.test(cardOrFace?.type_line || '');
 
 const normalizeType = (typeLine) => {
-    if (!typeLine || !props.tags.types?.length) return typeLine;
-
-    const parts = typeLine.split(/[—\s//]+/);
+    if (!typeLine) return typeLine;
+    const mapping = new Map(Object.entries(typeMapping.value).map(([source, target]) => [source.toLowerCase(), target]));
+    const mappedType = mapping.get(typeLine.toLowerCase()) || typeLine
+        .split(/(\s+|—|\/\/)/)
+        .map(part => mapping.get(part.trim().toLowerCase()) || part)
+        .join('');
+    const exactTag = props.tags.types?.find(tag => tag.toLowerCase() === mappedType.toLowerCase());
+    if (exactTag) return exactTag;
+    if (!props.tags.types?.length) return mappedType;
+    const parts = mappedType.split(/[—/\s]+/);
     const result = parts
         .map(part => {
             return props.tags.types.find(t => t.toLowerCase() === part.toLowerCase());
         })
         .filter(Boolean);
 
-    return [...new Set(result)].join(' ') || typeLine;
+    return [...new Set(result)].join(' ') || mappedType;
 };
+
+onMounted(async () => {
+    try {
+        typeMapping.value = (await serverService.getConfig()).typeMapping || {};
+        if (!props.card.savedType) selectedType.value = normalizeType(props.card.Type || props.card.type_line);
+    } catch (error) {
+        console.error('Failed to load type mappings:', error);
+    }
+});
 
 const flipCard = ref(false);
 const isFlippable = ref(false);
@@ -230,23 +264,31 @@ const formattedFinishes = computed(() => {
 const setIcon = ref('');
 const fetchSetIcon = async () => {
     if (props.card && props.card.set) {
-        setIcon.value = `http://localhost:3001/api/sets/${props.card.set}/icon`;
+        setIcon.value = apiAssetUrl(`/api/sets/${encodeURIComponent(props.card.set)}/icon`);
     }
 };
 
 const prints = ref({});
+const printsLoading = ref(false);
 const fetchPrints = async () => {
+    printsLoading.value = true;
     try {
         const response = await scryfallService.getCardPrints(props.card.oracle_id, props.card.name);
-        prints.value.total = response.data.length;
-        prints.value.items = response.data.slice(0,8);
+        const otherPrints = response.data.filter(print => print.id !== props.card.id);
+        prints.value = { total: otherPrints.length, items: otherPrints.slice(0, 8) };
     } catch (error) {
         console.error('Failed to fetch prints:', error);
+        prints.value = { total: 0, items: [] };
+    } finally {
+        printsLoading.value = false;
     }
 };
+const getPrintImage = print => print.image_uris?.small || print.image_uris?.normal || print.card_faces?.[0]?.image_uris?.small || 'placeholder.jpg';
+const getPrintSetIcon = print => apiAssetUrl(`/api/sets/${encodeURIComponent(print.set)}/icon`);
+const formatReleaseDate = value => value ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T00:00:00`)) : 'Unknown date';
+const formatPrintFinishes = finishes => finishes?.length ? finishes.map(finish => finish.toUpperCase()).join(' · ') : 'NONFOIL';
 const searchPrint = (print) => {
-    emit('update:search', 'e:"' + print.set + '" number:"' + print.collector_number + '"');
-    emit('close');
+    emit('select-print', print);
 };
 const showAllPrints = (oracle_id, name) => {
     emit('update:search', '!"' + name + '" oracleid:' + oracle_id + ' unique:prints order:release');
@@ -265,16 +307,6 @@ const getCardImage = (card, isBack = false) => {
         return card.card_faces[isBack ? 1 : 0].image_uris.large;
     }
     return 'placeholder.jpg'; // Fallback image
-};
-
-const formatSymbols = (text) => {
-    return symbolService.replaceSymbols(text);
-};
-
-const formatOracleText = (text) => {
-    if (!text) return '';
-    const withSymbols = symbolService.replaceSymbols(text);
-    return withSymbols.replace(/\n/g, '<br>');
 };
 
 const addNewGroup = () => {
@@ -301,7 +333,7 @@ const saveToVault = async () => {
         emit('save-success');
     } catch (error) {
         console.error('Save failed:', error);
-        statusMsg.value = error.response?.data?.error || 'Failed to save card.';
+        statusMsg.value = apiErrorMessage(error, 'Failed to save card.');
         statusType.value = 'error';
     } finally {
         saving.value = false;
@@ -325,20 +357,22 @@ watch(() => props.tags.types, (newTypes) => {
 });
 
 watch(() => props.card, (newCard) => {
+    flipCard.value = false;
     fetchSetIcon();
     flippable();
     fetchPrints();
     
     // Initialize selected groups from card data if available
-    if (newCard && Array.isArray(newCard.Groups)) {
-        selectedGroups.value = [...newCard.Groups];
+    const existingGroups = newCard?.savedGroups || newCard?.Groups || newCard?.Group || [];
+    if (Array.isArray(existingGroups)) {
+        selectedGroups.value = [...existingGroups];
     } else {
-        selectedGroups.value = [];
+        selectedGroups.value = existingGroups ? [existingGroups] : [];
     }
 
     // Initialize collection and type
-    selectedCollection.value = newCard.Collection || `${newCard.set_name} (${newCard.set.toUpperCase()})`;
-    selectedType.value = normalizeType(newCard.Type || newCard.type_line);
+    selectedCollection.value = newCard.savedCollection || newCard.Collection || `${newCard.set_name} (${newCard.set.toUpperCase()})`;
+    selectedType.value = newCard.savedType || normalizeType(newCard.Type || newCard.type_line);
 }, { immediate: true });
 </script>
 
@@ -492,12 +526,13 @@ h2, h3 {
     align-items: start;
     /* flex-direction: column; */
 }
+h2 > span, .adventure-face h3, .detail-wrapper > div > h3 { flex-wrap: wrap; }
 h2 small, h3 small {
     font-size: 65%;
     color: #718096;
 }
 
-.mana-cost { margin-left: 10px; }
+.mana-cost { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; max-width: 100%; margin-left: 10px; }
 p {margin-top:0;}
 .type-line {
     font-weight: bold;
@@ -562,6 +597,20 @@ p {margin-top:0;}
     border-radius: 4px;
     border: 1px solid #cbd5e0;
 }
+.prints-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.prints-heading h3 { padding: 0; }.prints-heading span { background: #e2e8f0; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+.prints-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.print-card { min-width: 0; display: flex; gap: 9px; align-items: stretch; padding: 7px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
+.print-card:hover { border-color: #3182ce; background: #ebf8ff; }.print-card > img { width: 58px; align-self: flex-start; border-radius: 4px; }
+.print-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }.print-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.print-info small { color: #718096; text-transform: capitalize; }.print-set { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }.print-set img { width: 14px; height: 14px; }
+.prints-state { padding: 24px; text-align: center; color: #718096; background: #f7fafc; border-radius: 8px; }
+.view-all-prints { margin-top: 10px; padding: 9px; border: 1px solid #3182ce; border-radius: 6px; background: white; color: #3182ce; cursor: pointer; }
+.adventure-faces { display: grid; gap: 14px; }
+.adventure-face { position: relative; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+.adventure-face.spell { background: #fffaf0; border-color: #f6ad55; }
+.face-label { display: inline-block; margin-bottom: 8px; padding: 3px 8px; border-radius: 999px; background: #4a5568; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.adventure-face.spell .face-label { background: #c05621; }
 
 .group-checkbox {
     display: flex;
@@ -636,6 +685,10 @@ p {margin-top:0;}
     .detail-text {
         width: auto;
     }
+}
+
+@media screen and (max-width: 520px) {
+    .prints-grid { grid-template-columns: 1fr; }
 }
 
 @media screen and (min-width: 980px) {

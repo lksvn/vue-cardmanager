@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = `${import.meta.env.VITE_API_URL || ''}/api`;
+
+export const apiAssetUrl = (path) => `${import.meta.env.VITE_API_URL || ''}${path}`;
+
+const unwrapError = (error) => {
+  const payload = error.response?.data?.error;
+  return typeof payload === 'object' ? payload.message : payload;
+};
+
+export const apiErrorMessage = (error, fallback = 'Request failed') => unwrapError(error) || error.message || fallback;
 
 export const serverService = {
   async getConfig() {
@@ -48,18 +57,33 @@ export const serverService = {
     return response.data;
   },
 
-  async updateTag(type, oldTag, newTag) {
-    const response = await axios.put(`${BASE_URL}/tags/${type}`, { oldTag, newTag });
+  async updateTag(type, oldTag, newTag, updateCards = false) {
+    const response = await axios.put(`${BASE_URL}/tags/${type}`, { oldTag, newTag, updateCards });
     return response.data;
   },
 
-  async deleteTag(type, tag) {
-    const response = await axios.delete(`${BASE_URL}/tags/${type}`, { data: { tag } });
+  async deleteTag(type, tag, updateCards = false) {
+    const response = await axios.delete(`${BASE_URL}/tags/${type}`, { data: { tag, updateCards } });
+    return response.data;
+  },
+
+  async auditCards() {
+    const response = await axios.get(`${BASE_URL}/reports/cards`);
+    return response.data;
+  },
+
+  async getTagImpact(type, tag) {
+    const response = await axios.get(`${BASE_URL}/tags/${type}/impact`, { params: { tag } });
     return response.data;
   },
 
   async rebuildCollections() {
     const response = await axios.post(`${BASE_URL}/tags/rebuild`);
+    return response.data;
+  },
+
+  async rebuildTags(type) {
+    const response = await axios.post(`${BASE_URL}/tags/rebuild/${type}`);
     return response.data;
   },
 
@@ -70,6 +94,26 @@ export const serverService = {
 
   async syncSymbols() {
     const response = await axios.post(`${BASE_URL}/symbols/sync`);
+    return response.data;
+  },
+
+  async previewMigration() {
+    const response = await axios.post(`${BASE_URL}/migrations/card-schema/preview`);
+    return response.data;
+  },
+
+  async applyMigration(previewId, confirmedVaultPath) {
+    const response = await axios.post(`${BASE_URL}/migrations/card-schema/apply`, { previewId, confirmedVaultPath });
+    return response.data;
+  },
+
+  async getMigrationStatus() {
+    const response = await axios.get(`${BASE_URL}/migrations/card-schema/status`);
+    return response.data;
+  },
+
+  async rollbackMigration(migrationId) {
+    const response = await axios.post(`${BASE_URL}/migrations/card-schema/${encodeURIComponent(migrationId)}/rollback`);
     return response.data;
   }
 };

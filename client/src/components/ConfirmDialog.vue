@@ -1,0 +1,3 @@
+<template><div v-if="ui.confirmation" class="overlay"><div class="dialog"><p>{{ ui.confirmation.message }}</p><div><button @click="ui.answer(false)">Cancel</button><button class="confirm" @click="ui.answer(true)">Confirm</button></div></div></div></template>
+<script setup>import { useUiStore } from '../stores/ui'; const ui = useUiStore();</script>
+<style scoped>.overlay{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:2100}.dialog{background:white;padding:24px;border-radius:8px;max-width:420px}.dialog div{display:flex;justify-content:flex-end;gap:10px}button{padding:8px 14px}.confirm{background:#c53030;color:white;border:0}</style>

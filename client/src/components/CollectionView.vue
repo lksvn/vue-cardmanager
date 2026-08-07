@@ -39,6 +39,14 @@
       <div class="filter-item actions">
         <button @click="resetFilters" class="btn-text">Reset</button>
       </div>
+      <div class="filter-item">
+        <label>Sort:</label>
+        <select v-model="sortBy" class="form-select"><option value="name">Name</option><option value="collection">Collection</option><option value="type">Type</option></select>
+      </div>
+      <div class="filter-item">
+        <label>Direction:</label>
+        <select v-model="sortDirection" class="form-select"><option value="asc">A → Z</option><option value="desc">Z → A</option></select>
+      </div>
     </div>
 
     <div v-if="loading" class="loading">Loading collection...</div>
@@ -52,7 +60,7 @@
     </div>
 
     <div v-else class="collection-grid">
-      <div v-for="card in filteredCards" :key="card.filename" class="saved-card-item">
+      <div v-for="card in displayedCards" :key="card.filename" class="saved-card-item">
         <div class="card-preview">
           <img v-if="card.Cover" :src="getImageUrl(card.Cover)" :alt="card.name" />
           <div v-else class="no-image">No Image</div>
@@ -65,6 +73,9 @@
           </div>
         </div>
         <div class="card-actions">
+          <button @click="searchCard(card)" class="btn-search" title="Search all printings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
           <button @click="editCard(card)" class="btn-edit" title="Edit metadata">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
           </button>
@@ -73,6 +84,11 @@
           </button>
         </div>
       </div>
+    </div>
+    <div v-if="filteredCards.length > pageSize" class="pagination-controls">
+      <button class="btn btn-secondary" :disabled="page === 1" @click="page--">Previous</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button class="btn btn-secondary" :disabled="page === totalPages" @click="page++">Next</button>
     </div>
 
     <EditCardModal 
@@ -86,20 +102,33 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
-import { serverService } from '../services/server';
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue';
+import { apiAssetUrl, serverService } from '../services/server';
 import EditCardModal from './EditCardModal.vue';
+import { useTagsStore } from '../stores/tags';
+import { useUiStore } from '../stores/ui';
+import { useRoute, useRouter } from 'vue-router';
 
 const savedCards = ref([]);
 const loading = ref(true);
-const tags = ref({ collections: [], groups: [], types: [] });
+const tagsStore = useTagsStore();
+const ui = useUiStore();
+const route = useRoute();
+const router = useRouter();
+const tags = computed(() => tagsStore.tags);
 const editingCard = ref(null);
+const queryValue = (value, fallback = '') => typeof value === 'string' ? value : fallback;
+const sortBy = ref(['name', 'collection', 'type'].includes(route.query.sort) ? route.query.sort : 'name');
+const sortDirection = ref(['asc', 'desc'].includes(route.query.dir) ? route.query.dir : 'asc');
+const page = ref(Math.max(1, Number.parseInt(route.query.page, 10) || 1));
+const pageSize = 48;
+let restoringRouteState = false;
 
 const filters = reactive({
-  search: '',
-  collection: '',
-  group: '',
-  type: ''
+  search: queryValue(route.query.search),
+  collection: queryValue(route.query.collection),
+  group: queryValue(route.query.group),
+  type: queryValue(route.query.type)
 });
 
 const filteredCards = computed(() => {
@@ -110,7 +139,45 @@ const filteredCards = computed(() => {
     const matchesGroup = !filters.group || (card.Group && card.Group.includes(filters.group));
     
     return matchesSearch && matchesCollection && matchesType && matchesGroup;
+  }).sort((a, b) => {
+    const value = card => String(sortBy.value === 'collection' ? card.Collection : sortBy.value === 'type' ? card.Type : card.name);
+    const comparison = value(a).localeCompare(value(b), undefined, { sensitivity: 'base' });
+    return sortDirection.value === 'desc' ? -comparison : comparison;
   });
+});
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredCards.value.length / pageSize)));
+const displayedCards = computed(() => filteredCards.value.slice((page.value - 1) * pageSize, page.value * pageSize));
+watch([filters, sortBy, sortDirection], () => {
+  if (!restoringRouteState) page.value = 1;
+}, { deep: true });
+watch(totalPages, value => {
+  if (page.value > value) page.value = value;
+});
+
+watch([filters, sortBy, sortDirection, page], () => {
+  if (restoringRouteState) return;
+  const query = {
+    ...(filters.search ? { search: filters.search } : {}),
+    ...(filters.collection ? { collection: filters.collection } : {}),
+    ...(filters.group ? { group: filters.group } : {}),
+    ...(filters.type ? { type: filters.type } : {}),
+    ...(sortBy.value !== 'name' ? { sort: sortBy.value } : {}),
+    ...(sortDirection.value !== 'asc' ? { dir: sortDirection.value } : {}),
+    ...(page.value > 1 ? { page: String(page.value) } : {})
+  };
+  if (JSON.stringify(query) !== JSON.stringify(route.query)) router.replace({ query });
+}, { deep: true });
+
+watch(() => route.query, query => {
+  restoringRouteState = true;
+  filters.search = queryValue(query.search);
+  filters.collection = queryValue(query.collection);
+  filters.group = queryValue(query.group);
+  filters.type = queryValue(query.type);
+  sortBy.value = ['name', 'collection', 'type'].includes(query.sort) ? query.sort : 'name';
+  sortDirection.value = ['asc', 'desc'].includes(query.dir) ? query.dir : 'asc';
+  page.value = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  nextTick(() => { restoringRouteState = false; });
 });
 
 const resetFilters = () => {
@@ -122,7 +189,7 @@ const resetFilters = () => {
 
 const fetchTags = async () => {
   try {
-    tags.value = await serverService.getTags();
+    await tagsStore.load(true);
   } catch (err) {
     console.error('Failed to fetch tags:', err);
   }
@@ -143,18 +210,24 @@ const getImageUrl = (cover) => {
   if (!cover) return null;
   const match = cover.match(/\[\[(.*?)\]\]/);
   if (match && match[1]) {
-    return `http://localhost:3001/api/images/${encodeURIComponent(match[1])}`;
+    return apiAssetUrl(`/api/images/${encodeURIComponent(match[1])}`);
   }
   return null;
 };
 
+const searchCard = card => {
+  const escapedName = String(card.name || card.Name || '').replace(/(["\\])/g, '\\$1');
+  const query = card.OracleId ? `oracleid:${card.OracleId}` : `!"${escapedName}"`;
+  router.push({ path: '/search', query: { q: query, unique: 'prints', order: 'released', dir: 'desc', view: 'grid' } });
+};
+
 const deleteCard = async (card) => {
-  if (confirm(`Are you sure you want to delete "${card.name}" from your vault?`)) {
+  if (await ui.confirm(`Permanently delete "${card.name}" and its image? This cannot be undone.`)) {
     try {
       await serverService.deleteCard(card.filename);
       await fetchSavedCards();
     } catch (error) {
-      alert('Failed to delete card');
+      ui.notify('Failed to delete card', 'error');
     }
   }
 };
@@ -335,7 +408,7 @@ onMounted(async () => {
   gap: 5px;
 }
 
-.btn-delete, .btn-edit {
+.btn-delete, .btn-edit, .btn-search {
   background: rgba(255, 255, 255, 0.9);
   border: none;
   border-radius: 4px;
@@ -355,6 +428,8 @@ onMounted(async () => {
 .btn-edit {
   color: #3182ce;
 }
+
+.btn-search { color: #2f855a; }
 
 .btn-delete:hover {
   background: #e53e3e;
@@ -379,4 +454,6 @@ onMounted(async () => {
   border: 1px solid #cbd5e0;
   cursor: pointer;
 }
+
+.btn-search:hover { background: #2f855a; color: white; }
 </style>

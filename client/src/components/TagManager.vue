@@ -90,10 +90,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { serverService } from '../services/server';
+import { useTagsStore } from '../stores/tags';
+import { useUiStore } from '../stores/ui';
 
-const tags = ref({ collections: [], groups: [], types: [] });
+const tagsStore = useTagsStore();
+const ui = useUiStore();
+const tags = computed(() => tagsStore.tags);
 const editingTag = ref(null);
 const editValue = ref('');
 const addingType = ref(null);
@@ -103,8 +107,7 @@ const emit = defineEmits(['changed']);
 
 const fetchTags = async () => {
   try {
-    const data = await serverService.getTags();
-    tags.value = data;
+    await tagsStore.load(true);
   } catch (error) {
     console.error('Failed to fetch tags:', error);
   }
@@ -123,23 +126,27 @@ const saveEdit = async (type, oldTag) => {
     return;
   }
   try {
-    await serverService.updateTag(type, oldTag, editValue.value);
+    const impact = await serverService.getTagImpact(type, oldTag);
+    const updateCards = impact.count > 0 && await ui.confirm(`Also rename this tag in ${impact.count} card note(s)? Backups will be created.`);
+    await serverService.updateTag(type, oldTag, editValue.value, updateCards);
     await fetchTags();
     editingTag.value = null;
     emit('changed');
   } catch (error) {
-    alert('Failed to update tag');
+    ui.notify('Failed to update tag', 'error');
   }
 };
 
 const deleteTag = async (type, tag) => {
-  if (!confirm(`Are you sure you want to delete "${tag}" from ${type}?`)) return;
+  if (!await ui.confirm(`Delete "${tag}" from ${type}?`)) return;
   try {
-    await serverService.deleteTag(type, tag);
+    const impact = await serverService.getTagImpact(type, tag);
+    const updateCards = impact.count > 0 && await ui.confirm(`Also remove this tag from ${impact.count} card note(s)? Backups will be created.`);
+    await serverService.deleteTag(type, tag, updateCards);
     await fetchTags();
     emit('changed');
   } catch (error) {
-    alert('Failed to delete tag');
+    ui.notify('Failed to delete tag', 'error');
   }
 };
 
@@ -159,7 +166,7 @@ const addTag = async (type) => {
         addingType.value = null;
         emit('changed');
     } catch (error) {
-        alert('Failed to add tag');
+        ui.notify('Failed to add tag', 'error');
     }
 };
 
