@@ -1,4 +1,14 @@
 .vscode/
 **/node_modules/
 **/package-lock.json
+**/pnpm-lock.yaml
 /server/public/sets/*.svg
+**/dist/
+.pnpm-store/
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+*.tmp
+/server/config.json
