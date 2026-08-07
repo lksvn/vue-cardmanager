@@ -7,7 +7,7 @@ const { atomicWrite, cardStorageKey, resolveInside } = require('../lib/storage')
 
 test('resolveInside rejects traversal and absolute paths', () => {
   const base = path.join(os.tmpdir(), 'cards');
-  assert.throws(() => resolveInside(base, '..\\secret.md'), error => error.code === 'PATH_TRAVERSAL');
+  assert.throws(() => resolveInside(base, '../secret.md'), error => error.code === 'PATH_TRAVERSAL');
   assert.throws(() => resolveInside(base, path.resolve(base, 'absolute.md')), error => error.code === 'INVALID_FILENAME');
   assert.equal(resolveInside(base, 'safe.md'), path.resolve(base, 'safe.md'));
 });
