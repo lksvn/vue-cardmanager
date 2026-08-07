@@ -31,7 +31,7 @@ test('API health, config validation, and path containment', async t => {
   assert.equal(invalidConfig.status, 400);
   assert.equal((await invalidConfig.json()).error.code, 'UNKNOWN_FIELDS');
 
-  const traversal = await fetch(`${base}/api/images/${encodeURIComponent('..\\secret.jpg')}`);
+  const traversal = await fetch(`${base}/api/images/${encodeURIComponent('../secret.jpg')}`);
   assert.equal(traversal.status, 400);
   assert.equal((await traversal.json()).error.code, 'PATH_TRAVERSAL');
 });
