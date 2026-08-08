@@ -22,8 +22,9 @@
     <div class="view-controls">
       <select v-model="selectedSavedQuery" @change="loadSavedQuery" :disabled="searching || queriesLoading || !savedQueries.length" aria-label="Saved queries">
         <option value="">{{ queriesLoading ? 'Loading queries...' : savedQueries.length ? 'Saved queries' : 'No saved queries' }}</option>
-        <option v-for="item in savedQueries" :key="item.name" :value="item.query">{{ item.name }}</option>
+        <option v-for="item in savedQueries" :key="item.name" :value="item.name">{{ item.name }}</option>
       </select>
+      <button class="btn btn-delete-query" :disabled="!selectedSavedQuery || queriesLoading" @click="$emit('delete-query', selectedSavedQuery)">Delete query</button>
       <select v-model="order" @change="emitOptions" aria-label="Order results">
         <option value="name">Name</option><option value="set">Set</option><option value="released">Release</option><option value="cmc">Mana value</option><option value="rarity">Rarity</option>
       </select>
@@ -65,7 +66,7 @@ const props = defineProps({
     options: { type: Object, default: () => ({ order: 'name', dir: 'auto', unique: 'cards' }) }
 });
 
-const emit = defineEmits(['search', 'save-query', 'update:viewMode', 'update:options']);
+const emit = defineEmits(['search', 'save-query', 'delete-query', 'update:viewMode', 'update:options']);
 const query = props._query ? ref(props._query) : ref('');
 const order = ref(props.options.order || 'name');
 const dir = ref(props.options.dir || 'auto');
@@ -94,10 +95,14 @@ const handleSaveQuery = () => {
 const cancelSaveQuery = () => { queryName.value = ''; showSave.value = false; };
 const loadSavedQuery = () => {
   if (!selectedSavedQuery.value) return;
-  query.value = selectedSavedQuery.value;
-  selectedSavedQuery.value = '';
+  const saved = props.savedQueries.find(item => item.name === selectedSavedQuery.value);
+  if (!saved) return;
+  query.value = saved.query;
   handleSearch();
 };
+watch(() => props.savedQueries, items => {
+  if (selectedSavedQuery.value && !items.some(item => item.name === selectedSavedQuery.value)) selectedSavedQuery.value = '';
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -166,6 +171,8 @@ const loadSavedQuery = () => {
 }
 .btn-primary:disabled { opacity: .65; cursor: wait; }
 .btn-save-query { border-radius: 4px; margin-left: 6px; background: #fff; color: #2b6cb0; }
+.btn-delete-query { padding: 8px; border-radius: 4px; background: #fff; color: #c53030; }
+.btn-delete-query:disabled { opacity: .5; cursor: default; }
 .save-query-form { display: flex; gap: 6px; margin-top: 8px; }
 .save-query-form input { flex: 1; min-width: 180px; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
 .view-controls select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }

@@ -63,6 +63,16 @@ test('saved queries API writes, lists, replaces, and protects its managed note',
   const listed = await request('/api/queries');
   assert.deepEqual(listed.body.queries, [{ name: 'creatures | recent', query: 'type:creature is:commander' }]);
 
+  const removed = await request(`/api/queries/${encodeURIComponent('CREATURES | RECENT')}`, { method: 'DELETE' });
+  assert.equal(removed.response.status, 200);
+  assert.equal(removed.body.query.name, 'creatures | recent');
+  assert.deepEqual((await request('/api/queries')).body.queries, []);
+  const emptyFile = grayMatter(await fs.readFile(queriesFile, 'utf8'));
+  assert.deepEqual(emptyFile.data.Queries, []);
+  const missing = await request(`/api/queries/${encodeURIComponent('Missing')}`, { method: 'DELETE' });
+  assert.equal(missing.response.status, 404);
+  assert.equal(missing.body.error.code, 'QUERY_NOT_FOUND');
+
   const cardsResponse = await request('/api/cards');
   assert.deepEqual(cardsResponse.body, []);
   const audit = await request('/api/reports/cards');

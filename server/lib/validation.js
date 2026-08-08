@@ -81,15 +81,20 @@ function saveBody(value) {
   return value;
 }
 
+function queryName(value) {
+  const name = typeof value === 'string' ? value.trim() : '';
+  if (!name || name.length > 100) throw new ApiError(400, 'INVALID_QUERY_NAME', 'Query name must contain between 1 and 100 characters');
+  return name;
+}
+
 function queryBody(value) {
   object(value, 'Request body');
   rejectUnknown(value, new Set(['name', 'query', 'replace']), 'query');
-  const name = typeof value.name === 'string' ? value.name.trim() : '';
+  const name = queryName(value.name);
   const query = typeof value.query === 'string' ? value.query.trim() : '';
-  if (!name || name.length > 100) throw new ApiError(400, 'INVALID_QUERY_NAME', 'Query name must contain between 1 and 100 characters');
   if (!query || query.length > 2000) throw new ApiError(400, 'INVALID_QUERY', 'Scryfall query must contain between 1 and 2000 characters');
   if (value.replace != null && typeof value.replace !== 'boolean') throw new ApiError(400, 'VALIDATION_ERROR', 'replace must be a boolean');
   return { name, query, replace: value.replace === true };
 }
 
-module.exports = { config, queryBody, saveBody, tag, tagType, updates };
+module.exports = { config, queryBody, queryName, saveBody, tag, tagType, updates };

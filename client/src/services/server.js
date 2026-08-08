@@ -77,6 +77,11 @@ export const serverService = {
     return response.data;
   },
 
+  async deleteQuery(name) {
+    const response = await axios.delete(`${BASE_URL}/queries/${encodeURIComponent(name)}`);
+    return response.data;
+  },
+
   async auditCards() {
     const response = await axios.get(`${BASE_URL}/reports/cards`);
     return response.data;

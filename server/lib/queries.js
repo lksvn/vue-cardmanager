@@ -66,4 +66,13 @@ async function saveQuery(config, input) {
   return { query: { name: input.name, query: input.query }, replaced: index >= 0 };
 }
 
-module.exports = { readQueries, renderQueries, saveQuery };
+async function deleteQuery(config, name) {
+  const queries = await readQueries(config);
+  const index = queries.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+  if (index < 0) throw new ApiError(404, 'QUERY_NOT_FOUND', `Saved query "${name}" was not found`);
+  const [removed] = queries.splice(index, 1);
+  await atomicWrite(queriesPath(config), renderQueries(queries));
+  return { query: removed };
+}
+
+module.exports = { deleteQuery, readQueries, renderQueries, saveQuery };

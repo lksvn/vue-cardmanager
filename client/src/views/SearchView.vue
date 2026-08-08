@@ -1,5 +1,5 @@
 <template>
-  <SearchBar :view-mode="viewMode" :_query="query" :options="searchOptions" :searching="loading" :saving-query="savingQuery" :saved-queries="savedQueries" :queries-loading="queriesLoading" @search="performSearch" @save-query="saveCurrentQuery" @update:view-mode="setViewMode" @update:options="setOptions" />
+  <SearchBar :view-mode="viewMode" :_query="query" :options="searchOptions" :searching="loading" :saving-query="savingQuery" :saved-queries="savedQueries" :queries-loading="queriesLoading" @search="performSearch" @save-query="saveCurrentQuery" @delete-query="deleteSavedQuery" @update:view-mode="setViewMode" @update:options="setOptions" />
   <div v-if="loading && !loadingMore" class="loading" role="status">Searching Scryfall for “{{ query }}”...</div>
   <div v-else-if="error" class="error-state">{{ error }}<button class="btn-load-more" @click="performSearch(query)">Retry</button></div>
   <div v-else-if="cards.length" class="results">
@@ -136,6 +136,19 @@ const saveCurrentQuery = async ({ name, query: savedQuery, done }) => {
     }
   } finally {
     savingQuery.value = false;
+  }
+};
+const deleteSavedQuery = async name => {
+  if (!await ui.confirm(`Delete the saved query "${name}"?`)) return;
+  queriesLoading.value = true;
+  try {
+    await serverService.deleteQuery(name);
+    await loadQueries();
+    ui.notify(`Query "${name}" deleted.`);
+  } catch (requestError) {
+    ui.notify(requestError.response?.data?.error?.message || 'Could not delete query.', 'error');
+  } finally {
+    queriesLoading.value = false;
   }
 };
 const onSaveSuccess = async card => {
