@@ -162,7 +162,8 @@ Before changing anything, the server creates a timestamped backup under `.card-m
 | `npm run dev` | Start the Vite development server. |
 | `npm run server` | Start the Express API. |
 | `npm test` | Run the server test suite. |
-| `npm run check` | Run server tests and the production client build. |
+| `npm run e2e` | Run the Playwright browser smoke test. |
+| `npm run check` | Run server tests, the production client build, and browser smoke test. |
 | `npm run build --prefix client` | Build the frontend into `client/dist`. |
 | `npm run preview --prefix client` | Preview the frontend production build. |
 
@@ -184,7 +185,7 @@ The Express server exposes endpoints for:
 - `/api/migrations/card-schema/status` — list migration backups.
 - `/api/migrations/card-schema/:id/rollback` — perform checksum-guarded rollback.
 - `/api/reports/cards` — run a read-only collection integrity audit.
-- `/api/queries` — list or save named Scryfall queries in the managed Markdown note.
+- `/api/queries` — list, save, replace, or delete named Scryfall queries in the managed Markdown note.
 - `/api/symbols` — read or synchronize Scryfall symbology.
 - `/api/sets/:code/icon` — fetch and cache a set icon.
 

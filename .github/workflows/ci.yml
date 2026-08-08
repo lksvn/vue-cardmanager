@@ -13,4 +13,5 @@ jobs:
         with:
           node-version: 22
       - run: npm run install-all
+      - run: npx playwright install --with-deps chromium
       - run: npm run check
