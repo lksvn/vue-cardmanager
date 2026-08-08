@@ -273,4 +273,4 @@ async function migrationStatus(config) {
   return { migrations: entries.filter(entry => entry.isDirectory()).map(entry => entry.name).sort().reverse(), legacyFiles: legacyFiles.length };
 }
 
-module.exports = { applyMigration, buildPreview, migrationStatus, rollbackMigration };
+module.exports = { applyMigration, buildPreview, migrationStatus, replaceReferences, rollbackMigration, walk };

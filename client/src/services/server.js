@@ -67,6 +67,11 @@ export const serverService = {
     return response.data;
   },
 
+  async resolveCard(filename, card) {
+    const response = await axios.post(`${BASE_URL}/cards/${encodeURIComponent(filename)}/resolve`, { card });
+    return response.data;
+  },
+
   async getQueries() {
     const response = await axios.get(`${BASE_URL}/queries`);
     return response.data;

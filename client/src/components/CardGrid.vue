@@ -20,7 +20,7 @@
 				<p class="card-name">{{ card.name }} <span>({{ card.set }})</span></p>
 				<div class="card-actions">
 					<a v-if="isCreatureCard(card)" class="edhrec-link" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" @click.stop>EDHREC</a>
-					<button class="quick-add" :disabled="card.isSaved" @click.stop="$emit('quick-add', card)">{{ card.isSaved ? 'Already saved' : 'Quick add' }}</button>
+					<button class="quick-add" :disabled="card.isSaved && !card.isRepairTarget" @click.stop="$emit('quick-add', card)">{{ resolveMode && card.isRepairTarget ? 'Use this printing' : card.isSaved ? 'Already saved' : resolveMode ? 'Use this printing' : 'Quick add' }}</button>
 				</div>
 			</div>
 		</div>
@@ -34,7 +34,8 @@ const props = defineProps({
 	cards: {
 		type: Array,
 		required: true
-	}
+	},
+	resolveMode: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['select', 'quick-add']);

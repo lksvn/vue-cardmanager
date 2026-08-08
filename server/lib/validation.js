@@ -81,6 +81,12 @@ function saveBody(value) {
   return value;
 }
 
+function resolveBody(value) {
+  object(value, 'Request body');
+  rejectUnknown(value, new Set(['card']), 'identity resolution');
+  return { card: saveBody({ card: value.card }).card };
+}
+
 function queryName(value) {
   const name = typeof value === 'string' ? value.trim() : '';
   if (!name || name.length > 100) throw new ApiError(400, 'INVALID_QUERY_NAME', 'Query name must contain between 1 and 100 characters');
@@ -97,4 +103,4 @@ function queryBody(value) {
   return { name, query, replace: value.replace === true };
 }
 
-module.exports = { config, queryBody, queryName, saveBody, tag, tagType, updates };
+module.exports = { config, queryBody, queryName, resolveBody, saveBody, tag, tagType, updates };

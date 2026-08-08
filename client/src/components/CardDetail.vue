@@ -334,12 +334,18 @@ const saveToVault = async () => {
     statusMsg.value = '';
     
     try {
-        const result = await serverService.saveCard(
-            props.card, 
-            selectedGroups.value,
-            selectedCollection.value,
-            selectedType.value
-        );
+        const result = props.card.isSaved && props.card.savedFilename
+            ? await serverService.updateCard(props.card.savedFilename, {
+                Groups: selectedGroups.value,
+                Collection: selectedCollection.value,
+                Type: selectedType.value
+            })
+            : await serverService.saveCard(
+                props.card,
+                selectedGroups.value,
+                selectedCollection.value,
+                selectedType.value
+            );
         statusMsg.value = result.message;
         statusType.value = 'success';
         emit('save-success');

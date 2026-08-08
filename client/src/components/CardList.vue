@@ -21,7 +21,7 @@
           <td>{{ card.type_line }}</td>
           <td><img v-if="card.setIcon" :src="card.setIcon" class="set-icon" :alt="card.set_name" /> {{ card.set_name }} ({{ card.set.toUpperCase() }})</td>
           <td :class="['rarity', card.rarity]">{{ card.rarity }}</td>
-          <td class="row-actions"><a v-if="isCreatureCard(card)" class="edhrec-link" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" @click.stop>EDHREC</a><span v-if="card.isSaved" class="saved-label" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></span><button v-else class="quick-add" @click.stop="$emit('quick-add', card)">Quick add</button></td>
+          <td class="row-actions"><a v-if="isCreatureCard(card)" class="edhrec-link" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" @click.stop>EDHREC</a><button v-if="resolveMode && card.isRepairTarget" class="quick-add" @click.stop="$emit('quick-add', card)">Use this printing</button><span v-else-if="card.isSaved" class="saved-label" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></span><button v-else-if="resolveMode" class="quick-add" @click.stop="$emit('quick-add', card)">Use this printing</button><button v-else class="quick-add" @click.stop="$emit('quick-add', card)">Quick add</button></td>
         </tr>
       </tbody>
     </table>
@@ -35,7 +35,8 @@ const props = defineProps({
   cards: {
     type: Array,
     required: true
-  }
+  },
+  resolveMode: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['select', 'quick-add']);

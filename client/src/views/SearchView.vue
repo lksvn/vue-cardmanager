@@ -1,5 +1,6 @@
 <template>
   <SearchBar :view-mode="viewMode" :_query="query" :options="searchOptions" :searching="loading" :saving-query="savingQuery" :saved-queries="savedQueries" :queries-loading="queriesLoading" @search="performSearch" @save-query="saveCurrentQuery" @delete-query="deleteSavedQuery" @update:view-mode="setViewMode" @update:options="setOptions" />
+  <div v-if="repairFilename" class="repair-banner" role="status"><strong>Resolve existing card</strong><span>Select the correct printing for {{ repairFilename }}.</span><button @click="cancelRepair">Cancel</button></div>
   <div v-if="loading && !loadingMore" class="loading" role="status">Searching Scryfall for “{{ query }}”...</div>
   <div v-else-if="error" class="error-state">{{ error }}<button class="btn-load-more" @click="performSearch(query)">Retry</button></div>
   <div v-else-if="cards.length" class="results">
@@ -8,8 +9,8 @@
       <span>for “{{ query }}”</span>
       <span v-if="hasMore" class="more-results">More results are available.</span>
     </div>
-    <CardGrid v-if="viewMode === 'grid'" :cards="cards" @select="selectedCard = $event" @quick-add="quickAdd" />
-    <CardList v-else :cards="cards" @select="selectedCard = $event" @quick-add="quickAdd" />
+    <CardGrid v-if="viewMode === 'grid'" :cards="cards" :resolve-mode="Boolean(repairFilename)" @select="selectCard" @quick-add="quickAdd" />
+    <CardList v-else :cards="cards" :resolve-mode="Boolean(repairFilename)" @select="selectCard" @quick-add="quickAdd" />
     <div v-if="hasMore" class="pagination-controls"><button class="btn-load-more" :disabled="loadingMore" @click="loadMore">{{ loadingMore ? 'Loading more results...' : 'Load More Cards' }}</button></div>
   </div>
   <div v-else-if="searched" class="no-results">No cards found for “{{ query }}”.</div>
@@ -36,11 +37,13 @@ const cards = ref([]); const loading = ref(false); const loadingMore = ref(false
 const selectedCard = ref(null); const hasMore = ref(false); const nextPageUrl = ref(null); const error = ref('');
 const totalResults = ref(0);
 const savedCards = ref(new Map());
+const savedCardsByFilename = ref(new Map());
 const savedPrintingList = computed(() => [...new Set(savedCards.value.values())]);
 const savingQuery = ref(false);
 const savedQueries = ref([]);
 const queriesLoading = ref(false);
 const query = computed(() => String(route.query.q || ''));
+const repairFilename = computed(() => String(route.query.resolve || ''));
 const viewMode = computed(() => route.query.view === 'list' ? 'list' : 'grid');
 const searchOptions = computed(() => ({ order: route.query.order || 'name', dir: route.query.dir || 'auto', unique: route.query.unique || 'cards' }));
 const resultSummary = computed(() => totalResults.value > cards.value.length
@@ -51,10 +54,16 @@ const printKey = card => `${String(card.set || card.SetCode || '').toLowerCase()
 const findSaved = card => savedCards.value.get(`id:${card.id}`) || savedCards.value.get(`print:${printKey(card)}`);
 const normalize = items => items.map(card => {
   const saved = findSaved(card);
+  const repairTarget = savedCardsByFilename.value.get(repairFilename.value);
+  const isRepairTarget = Boolean(repairTarget && (
+    (repairTarget.ScryfallId && repairTarget.ScryfallId === card.id) || printKey(repairTarget) === printKey(card)
+  ));
   return {
     ...card,
     setIcon: apiAssetUrl(`/api/sets/${encodeURIComponent(card.set)}/icon`),
     isSaved: Boolean(saved),
+    isRepairTarget,
+    savedFilename: saved?.filename || '',
     savedCollection: saved?.Collection || '',
     savedGroups: saved?.Groups || saved?.Group || [],
     savedType: saved?.Type || ''
@@ -63,6 +72,7 @@ const normalize = items => items.map(card => {
 const loadSavedCards = async () => {
   const saved = await serverService.getSavedCards();
   const index = new Map();
+  savedCardsByFilename.value = new Map(saved.map(card => [card.filename, card]));
   for (const card of saved) {
     if (card.ScryfallId) index.set(`id:${card.ScryfallId}`, card);
     index.set(`print:${printKey(card)}`, card);
@@ -86,6 +96,7 @@ const loadQueries = async () => {
 const setViewMode = view => router.replace({ query: { ...route.query, view } });
 const setOptions = options => router.replace({ query: { ...route.query, ...options } });
 const selectPrint = print => { selectedCard.value = normalize([print])[0]; };
+const selectCard = card => repairFilename.value ? ((!card.isSaved || card.isRepairTarget) && quickAdd(card)) : selectedCard.value = card;
 const performSearch = async value => {
   const nextQuery = String(value || '').trim(); if (!nextQuery) return;
   controller?.abort();
@@ -111,10 +122,21 @@ const performSearch = async value => {
   finally { if (controller === requestController) loading.value = false; }
 };
 const quickAdd = async card => {
+  if (repairFilename.value) {
+    if (card.isSaved && !card.isRepairTarget) return;
+    if (!await ui.confirm(`Use ${card.name} (${card.set.toUpperCase()} #${card.collector_number}) to repair ${repairFilename.value}?`)) return;
+    try {
+      const result = await serverService.resolveCard(repairFilename.value, card);
+      ui.notify(result.message);
+      await router.push('/settings');
+    } catch (requestError) { ui.notify(requestError.response?.data?.error?.message || 'Could not resolve card identity.', 'error'); }
+    return;
+  }
   if (card.isSaved) return;
   try { await serverService.saveCard(card, []); ui.notify(`${card.name} added to the collection.`); await Promise.all([tagsStore.load(true), loadSavedCards()]); }
   catch (requestError) { ui.notify(requestError.response?.data?.error?.message || 'Could not add card.', 'error'); }
 };
+const cancelRepair = () => router.replace({ query: { ...route.query, resolve: undefined } });
 const saveCurrentQuery = async ({ name, query: savedQuery, done }) => {
   savingQuery.value = true;
   try {
@@ -156,6 +178,7 @@ const onSaveSuccess = async card => {
   await Promise.all([tagsStore.load(true), loadSavedCards()]);
   const saved = findSaved(card);
   card.isSaved = Boolean(saved);
+  card.savedFilename = saved?.filename || '';
   card.savedCollection = saved?.Collection || '';
   card.savedGroups = saved?.Groups || saved?.Group || [];
   card.savedType = saved?.Type || '';
@@ -176,4 +199,5 @@ onBeforeUnmount(() => controller?.abort());
 .results{padding:0 20px}
 .search-feedback{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 14px;padding:10px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;color:#4a5568}
 .search-feedback strong{color:#2d3748}.more-results{margin-left:auto;color:#2b6cb0;font-size:14px}
+.repair-banner{display:flex;align-items:center;gap:10px;margin:0 20px 14px;padding:10px 12px;border:1px solid #d69e2e;border-radius:6px;background:#fffff0;color:#744210}.repair-banner span{flex:1}.repair-banner button{padding:5px 9px;border:1px solid #d69e2e;border-radius:4px;background:white;cursor:pointer}
 </style>
