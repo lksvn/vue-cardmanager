@@ -1,9 +1,10 @@
-const { ApiError } = require('./storage');
+const path = require('path');
+const { ApiError, isInside } = require('./storage');
 
 const TAG_TYPES = new Set(['collections', 'groups', 'types']);
 const CONFIG_FIELDS = new Set([
   'vaultPath', 'imagesPath', 'groupsFile', 'typesFile', 'collectionsFile',
-  'obsidianVaultPath', 'baseFile', 'schemaVersion', 'typeMapping'
+  'obsidianVaultPath', 'baseFile', 'queriesFile', 'schemaVersion', 'typeMapping'
 ]);
 const UPDATE_FIELDS = new Set(['Collection', 'Type', 'Groups', 'Group']);
 
@@ -34,9 +35,17 @@ function tag(value) {
 function config(value) {
   object(value, 'Configuration');
   rejectUnknown(value, CONFIG_FIELDS, 'configuration');
-  for (const field of ['vaultPath', 'imagesPath', 'groupsFile', 'typesFile', 'collectionsFile', 'obsidianVaultPath', 'baseFile']) {
+  for (const field of ['vaultPath', 'imagesPath', 'groupsFile', 'typesFile', 'collectionsFile', 'obsidianVaultPath', 'baseFile', 'queriesFile']) {
     if (value[field] != null && typeof value[field] !== 'string') {
       throw new ApiError(400, 'VALIDATION_ERROR', `${field} must be a string`);
+    }
+  }
+  if (value.queriesFile) {
+    if (!path.isAbsolute(value.queriesFile) || path.extname(value.queriesFile).toLowerCase() !== '.md') {
+      throw new ApiError(400, 'INVALID_QUERIES_PATH', 'Queries file must be an absolute .md path');
+    }
+    if (!value.obsidianVaultPath || !isInside(value.obsidianVaultPath, value.queriesFile)) {
+      throw new ApiError(400, 'QUERIES_PATH_OUTSIDE_VAULT', 'Queries file must be inside the configured Obsidian vault');
     }
   }
   if (value.schemaVersion != null && (!Number.isInteger(value.schemaVersion) || value.schemaVersion < 1)) {
@@ -72,4 +81,15 @@ function saveBody(value) {
   return value;
 }
 
-module.exports = { config, saveBody, tag, tagType, updates };
+function queryBody(value) {
+  object(value, 'Request body');
+  rejectUnknown(value, new Set(['name', 'query', 'replace']), 'query');
+  const name = typeof value.name === 'string' ? value.name.trim() : '';
+  const query = typeof value.query === 'string' ? value.query.trim() : '';
+  if (!name || name.length > 100) throw new ApiError(400, 'INVALID_QUERY_NAME', 'Query name must contain between 1 and 100 characters');
+  if (!query || query.length > 2000) throw new ApiError(400, 'INVALID_QUERY', 'Scryfall query must contain between 1 and 2000 characters');
+  if (value.replace != null && typeof value.replace !== 'boolean') throw new ApiError(400, 'VALIDATION_ERROR', 'replace must be a boolean');
+  return { name, query, replace: value.replace === true };
+}
+
+module.exports = { config, queryBody, saveBody, tag, tagType, updates };

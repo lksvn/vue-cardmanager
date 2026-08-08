@@ -67,6 +67,16 @@ export const serverService = {
     return response.data;
   },
 
+  async getQueries() {
+    const response = await axios.get(`${BASE_URL}/queries`);
+    return response.data;
+  },
+
+  async saveQuery(name, query, replace = false) {
+    const response = await axios.post(`${BASE_URL}/queries`, { name, query, replace });
+    return response.data;
+  },
+
   async auditCards() {
     const response = await axios.get(`${BASE_URL}/reports/cards`);
     return response.data;

@@ -29,6 +29,10 @@
             <input v-model="config.collectionsFile" type="text" />
         </div>
         <div class="form-item">
+            <label>queries.md File Path:</label>
+            <input v-model="config.queriesFile" type="text" placeholder="C:\Users\...\Vault\card-manager\queries.md" />
+        </div>
+        <div class="form-item">
             <label>Obsidian Cards Base File:</label>
             <input v-model="config.baseFile" type="text" placeholder="C:\Users\...\Cards List.base" />
         </div>
@@ -102,6 +106,7 @@ const config = ref({
   groupsFile: '',
   typesFile: '',
   collectionsFile: '',
+  queriesFile: '',
   obsidianVaultPath: '',
   baseFile: '',
   schemaVersion: 1,

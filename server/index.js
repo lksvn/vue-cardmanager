@@ -31,6 +31,7 @@ app.use('/api/cards', require('./routes/cards'));
 app.use('/api/images', require('./routes/images'));
 app.use('/api/tags', require('./routes/tags'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/queries', require('./routes/queries'));
 app.use('/api/migrations', require('./routes/migrations'));
 app.use('/api/symbols', require('./routes/symbols')(SYMBOLS_DIR));
 app.use('/api/sets', require('./routes/sets')(SETS_DIR));

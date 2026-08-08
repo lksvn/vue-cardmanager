@@ -9,11 +9,21 @@
                 placeholder="Search for cards (e.g. Black Lotus, type:creature)..."
                 class="search-input"
             />
-            <button @click="handleSearch" class="btn btn-primary">Search</button>
+            <button @click="handleSearch" class="btn btn-primary" :disabled="searching">{{ searching ? 'Searching...' : 'Search' }}</button>
+            <button @click="showSave = !showSave" class="btn btn-save-query" :disabled="!query.trim() || savingQuery">Save query</button>
+        </div>
+        <div v-if="showSave" class="save-query-form">
+          <input v-model="queryName" @keyup.enter="handleSaveQuery" type="text" maxlength="100" placeholder="Query name" />
+          <button class="btn btn-secondary" :disabled="!queryName.trim() || savingQuery" @click="handleSaveQuery">{{ savingQuery ? 'Saving...' : 'Save' }}</button>
+          <button class="btn btn-secondary" :disabled="savingQuery" @click="cancelSaveQuery">Cancel</button>
         </div>
     </div>
     
     <div class="view-controls">
+      <select v-model="selectedSavedQuery" @change="loadSavedQuery" :disabled="searching || queriesLoading || !savedQueries.length" aria-label="Saved queries">
+        <option value="">{{ queriesLoading ? 'Loading queries...' : savedQueries.length ? 'Saved queries' : 'No saved queries' }}</option>
+        <option v-for="item in savedQueries" :key="item.name" :value="item.query">{{ item.name }}</option>
+      </select>
       <select v-model="order" @change="emitOptions" aria-label="Order results">
         <option value="name">Name</option><option value="set">Set</option><option value="released">Release</option><option value="cmc">Mana value</option><option value="rarity">Rarity</option>
       </select>
@@ -48,25 +58,45 @@ const props = defineProps({
         type: String,
         default: ''
     },
+    searching: { type: Boolean, default: false },
+    savingQuery: { type: Boolean, default: false },
+    savedQueries: { type: Array, default: () => [] },
+    queriesLoading: { type: Boolean, default: false },
     options: { type: Object, default: () => ({ order: 'name', dir: 'auto', unique: 'cards' }) }
 });
 
-const emit = defineEmits(['search', 'update:viewMode', 'update:options']);
+const emit = defineEmits(['search', 'save-query', 'update:viewMode', 'update:options']);
 const query = props._query ? ref(props._query) : ref('');
 const order = ref(props.options.order || 'name');
 const dir = ref(props.options.dir || 'auto');
 const unique = ref(props.options.unique || 'cards');
+const showSave = ref(false);
+const queryName = ref('');
+const selectedSavedQuery = ref('');
 const emitOptions = () => emit('update:options', { order: order.value, dir: dir.value, unique: unique.value });
 
 watch(() => props._query, (newQuery) => {
     if(newQuery !== query.value) {
         query.value = newQuery;
-        handleSearch();
     }
 });
 
 const handleSearch = () => {
+  if (props.searching) return;
   emit('search', query.value);
+};
+const handleSaveQuery = () => {
+  const name = queryName.value.trim();
+  const value = query.value.trim();
+  if (!name || !value || props.savingQuery) return;
+  emit('save-query', { name, query: value, done: () => { queryName.value = ''; showSave.value = false; } });
+};
+const cancelSaveQuery = () => { queryName.value = ''; showSave.value = false; };
+const loadSavedQuery = () => {
+  if (!selectedSavedQuery.value) return;
+  query.value = selectedSavedQuery.value;
+  selectedSavedQuery.value = '';
+  handleSearch();
 };
 </script>
 
@@ -134,5 +164,9 @@ const handleSearch = () => {
   flex-wrap: wrap;
   gap: 5px;
 }
+.btn-primary:disabled { opacity: .65; cursor: wait; }
+.btn-save-query { border-radius: 4px; margin-left: 6px; background: #fff; color: #2b6cb0; }
+.save-query-form { display: flex; gap: 6px; margin-top: 8px; }
+.save-query-form input { flex: 1; min-width: 180px; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
 .view-controls select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
 </style>

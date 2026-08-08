@@ -19,6 +19,7 @@ The application stores card metadata in YAML frontmatter, downloads card artwork
 - Rebuild collection, group, and type lists from saved notes.
 - Preview, apply, and checksum-safe rollback of the schema-v2 Obsidian migration.
 - Preserve searches, view mode, ordering, and uniqueness options in the URL.
+- Save named Scryfall queries to an Obsidian-compatible Markdown note.
 - Cache Scryfall set icons and mana-symbol assets through the local server.
 
 ## Tech stack
@@ -80,6 +81,7 @@ Configuration can be edited in the application's **Settings** view after startup
   "groupsFile": "D:\\path\\to\\vault\\Cards\\card-manager\\groups.md",
   "typesFile": "D:\\path\\to\\vault\\Cards\\card-manager\\types.md",
   "collectionsFile": "D:\\path\\to\\vault\\Cards\\card-manager\\collections.md",
+  "queriesFile": "D:\\path\\to\\vault\\Cards\\card-manager\\queries.md",
   "baseFile": "D:\\path\\to\\vault\\Cards List.base",
   "obsidianVaultPath": "D:\\path\\to\\vault",
   "schemaVersion": 1,
@@ -92,6 +94,8 @@ Configuration can be edited in the application's **Settings** view after startup
 The configured directories and parent directories for the tag files must already exist. `obsidianVaultPath` must be the full vault containing both card and image directories before migration can run. Tag files are plain text despite their `.md` extension, with one tag per line. The application creates `server/config.json` with empty values if it is missing.
 
 When `baseFile` is configured, adding a group creates a matching Obsidian cards view using `Groups.contains("Group name")`. Renaming or deleting the group keeps that generated view synchronized.
+
+When `queriesFile` is configured, the Search view can save named Scryfall queries to that Markdown note. The path must end in `.md`, remain inside `obsidianVaultPath`, and have an existing parent directory. The application manages its YAML properties and regenerates its readable Markdown table.
 
 `server/config.json` contains machine-specific absolute paths and is ignored by Git. `server/config.example.json` documents the safe default structure.
 
@@ -180,6 +184,7 @@ The Express server exposes endpoints for:
 - `/api/migrations/card-schema/status` — list migration backups.
 - `/api/migrations/card-schema/:id/rollback` — perform checksum-guarded rollback.
 - `/api/reports/cards` — run a read-only collection integrity audit.
+- `/api/queries` — list or save named Scryfall queries in the managed Markdown note.
 - `/api/symbols` — read or synchronize Scryfall symbology.
 - `/api/sets/:code/icon` — fetch and cache a set icon.
 

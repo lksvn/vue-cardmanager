@@ -7,15 +7,15 @@ const { ApiError, atomicWrite, cardStorageKey, resolveInside } = require('../lib
 const { readConfig } = require('../lib/config');
 const { downloadImage } = require('../lib/download');
 const { appendTagIfMissing, applyTypeMapping, ensureGroup } = require('../lib/tags');
+const { isManagedNote } = require('../lib/managed-files');
 
 const router = express.Router();
-const excludedFiles = new Set(['groups.md', 'types.md', 'collections.md']);
 
 router.get('/', async (req, res, next) => {
   try {
     const config = await readConfig();
     if (!config.vaultPath || !await fs.pathExists(config.vaultPath)) return res.json([]);
-    const mdFiles = (await fs.readdir(config.vaultPath)).filter(file => file.endsWith('.md') && !excludedFiles.has(file));
+    const mdFiles = (await fs.readdir(config.vaultPath)).filter(file => file.endsWith('.md') && !isManagedNote(config, file));
     const cards = [];
     for (const file of mdFiles) {
       const { data } = grayMatter(await fs.readFile(path.join(config.vaultPath, file), 'utf8'));

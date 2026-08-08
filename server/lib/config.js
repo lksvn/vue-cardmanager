@@ -12,6 +12,7 @@ const initialConfig = {
   groupsFile: '',
   typesFile: '',
   collectionsFile: '',
+  queriesFile: '',
   obsidianVaultPath: '',
   baseFile: '',
   schemaVersion: 1,

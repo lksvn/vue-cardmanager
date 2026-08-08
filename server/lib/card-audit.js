@@ -2,6 +2,7 @@ const fs = require('fs-extra');
 const grayMatter = require('gray-matter');
 const path = require('path');
 const { ApiError, cardStorageKey, resolveInside } = require('./storage');
+const { isManagedNote } = require('./managed-files');
 
 function coverFilename(value) {
   const match = typeof value === 'string' && value.match(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/);
@@ -15,7 +16,7 @@ function addIssue(card, code, message) {
 async function auditCards(config) {
   if (!config.vaultPath || !await fs.pathExists(config.vaultPath)) throw new ApiError(400, 'VAULT_PATH_REQUIRED', 'Configured card path was not found');
   const files = (await fs.readdir(config.vaultPath))
-    .filter(file => file.toLowerCase().endsWith('.md') && !['groups.md', 'types.md', 'collections.md'].includes(file.toLowerCase()));
+    .filter(file => file.toLowerCase().endsWith('.md') && !isManagedNote(config, file));
   const cards = [];
 
   for (const filename of files) {

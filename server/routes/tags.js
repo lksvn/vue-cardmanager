@@ -5,6 +5,7 @@ const validate = require('../lib/validation');
 const { ApiError, resolveInside } = require('../lib/storage');
 const { readConfig } = require('../lib/config');
 const { updateGroupView } = require('../lib/base-file');
+const { isManagedNote } = require('../lib/managed-files');
 const {
   appendTagIfMissing, readTagFile, rebuildTagFile, updateTagInCards, writeTagFile
 } = require('../lib/tags');
@@ -38,7 +39,7 @@ router.get('/:type/impact', async (req, res, next) => {
     const config = await readConfig();
     if (!config.vaultPath || !await fs.pathExists(config.vaultPath)) return res.json({ count: 0 });
     let count = 0;
-    for (const file of (await fs.readdir(config.vaultPath)).filter(item => item.endsWith('.md'))) {
+    for (const file of (await fs.readdir(config.vaultPath)).filter(item => item.endsWith('.md') && !isManagedNote(config, item))) {
       const data = grayMatter(await fs.readFile(resolveInside(config.vaultPath, file), 'utf8')).data;
       const value = type === 'collections' ? data.Collection : type === 'types' ? data.Type : (data.Groups ?? data.Group ?? []);
       if (Array.isArray(value) ? value.includes(oldTag) : value === oldTag) count++;

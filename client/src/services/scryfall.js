@@ -21,7 +21,8 @@
 			return {
 				data: response.data.data,
 				has_more: response.data.has_more,
-				next_page: response.data.next_page
+				next_page: response.data.next_page,
+				total_cards: response.data.total_cards
 			};
 		} catch (error) {
 			console.error('Error fetching cards from Scryfall:', error);
@@ -40,10 +41,11 @@
 		if (!url) return { data: [], has_more: false, next_page: null };
 		try {
 			const response = await axios.get(url);
-		return {
-			data: response.data.data,
-			has_more: response.data.has_more,
-			next_page: response.data.next_page
+			return {
+				data: response.data.data,
+				has_more: response.data.has_more,
+				next_page: response.data.next_page,
+				total_cards: response.data.total_cards
 		};
 		} catch (error) {
 			console.error('Error fetching next page from Scryfall:', error);

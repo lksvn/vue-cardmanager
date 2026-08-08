@@ -4,6 +4,7 @@ const grayMatter = require('gray-matter');
 const { atomicWrite, resolveInside } = require('./storage');
 const { updateGroupView } = require('./base-file');
 const { readConfig } = require('./config');
+const { isManagedNote } = require('./managed-files');
 
 const rebuildableTags = {
   collections: { fileKey: 'collectionsFile', label: 'Collections', getValues: data => data.Collection },
@@ -55,7 +56,7 @@ async function rebuildTagFile(type) {
     throw Object.assign(new Error(`Path for ${type} not configured`), { status: 400 });
   }
   const files = await fs.readdir(config.vaultPath);
-  const mdFiles = files.filter(file => file.endsWith('.md') && !['groups.md', 'types.md', 'collections.md'].includes(file));
+  const mdFiles = files.filter(file => file.endsWith('.md') && !isManagedNote(config, file));
   const tags = new Set();
   for (const file of mdFiles) {
     const { data } = grayMatter(await fs.readFile(path.join(config.vaultPath, file), 'utf8'));
@@ -72,7 +73,7 @@ async function updateTagInCards(type, oldTag, newTag) {
   const config = await readConfig();
   if (!config.vaultPath || !await fs.pathExists(config.vaultPath)) return 0;
   const field = type === 'collections' ? 'Collection' : type === 'types' ? 'Type' : 'Groups';
-  const files = (await fs.readdir(config.vaultPath)).filter(file => file.endsWith('.md'));
+  const files = (await fs.readdir(config.vaultPath)).filter(file => file.endsWith('.md') && !isManagedNote(config, file));
   const changed = [];
   for (const file of files) {
     const filePath = resolveInside(config.vaultPath, file);

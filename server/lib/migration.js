@@ -5,6 +5,7 @@ const path = require('path');
 const {
   ApiError, atomicWrite, atomicWriteJson, cardStorageKey, checksum, isInside, resolveInside
 } = require('./storage');
+const { isManagedNote } = require('./managed-files');
 
 const BACKUP_DIRECTORY = '.card-manager-backups';
 
@@ -64,7 +65,7 @@ function validateConfig(config) {
 async function legacyCardFiles(config) {
   if (!config.vaultPath || !await fs.pathExists(config.vaultPath)) return [];
   const files = (await fs.readdir(config.vaultPath))
-    .filter(file => file.toLowerCase().endsWith('.md') && !['groups.md', 'types.md', 'collections.md'].includes(file.toLowerCase()));
+    .filter(file => file.toLowerCase().endsWith('.md') && !isManagedNote(config, file));
   const legacy = [];
   for (const file of files) {
     const data = grayMatter(await fs.readFile(resolveInside(config.vaultPath, file), 'utf8')).data;
@@ -83,7 +84,7 @@ async function buildPreview(config) {
   }
 
   const cardFiles = (await fs.readdir(config.vaultPath))
-    .filter(file => file.toLowerCase().endsWith('.md') && !['groups.md', 'types.md', 'collections.md'].includes(file.toLowerCase()));
+    .filter(file => file.toLowerCase().endsWith('.md') && !isManagedNote(config, file));
   const actions = [];
   const unresolved = [];
   const targetNames = new Set();
