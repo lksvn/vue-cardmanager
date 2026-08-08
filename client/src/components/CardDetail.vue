@@ -17,6 +17,7 @@
                 <button v-if="isFlippable" @click="flipCard = !flipCard" class="btn btn-add">
                     {{ flipButtonText }}
                 </button>
+                <a v-if="isCreatureCard(card)" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" class="btn edhrec-link">View on EDHREC</a>
             </div>
                 
             <div class="detail-text">
@@ -140,6 +141,7 @@ import { apiAssetUrl, apiErrorMessage, serverService } from '../services/server'
 import { scryfallService } from '../services/scryfall';
 import SymbolText from './SymbolText.vue';
 import SagaText from './SagaText.vue';
+import { edhrecCommanderUrl, isCreatureCard } from '../utils/edhrec';
 
 const emit = defineEmits(['close', 'save-success', 'update:search', 'select-print']);
 const props = defineProps({
@@ -449,6 +451,7 @@ watch(() => props.card, (newCard) => {
     border-radius: 4.75% / 3.5%;
     box-shadow: 1px 1px 8px rgba(0,0,0,0.5);
     overflow: hidden;
+    background: #e2e8f0 url('/api/images/placeholder.jpg') center / cover no-repeat;
 }
 .detail-image-front { 
     transform: rotateY(0); 
@@ -470,7 +473,10 @@ watch(() => props.card, (newCard) => {
     margin: 20px 0;
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 10px;
 }
+.detail-actions .edhrec-link { color: #6b46c1; text-decoration: none; border-color: #805ad5; }
 
 .detail-text {
     flex-grow: 1;
@@ -601,7 +607,7 @@ p {margin-top:0;}
 .prints-heading h3 { padding: 0; }.prints-heading span { background: #e2e8f0; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
 .prints-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .print-card { min-width: 0; display: flex; gap: 9px; align-items: stretch; padding: 7px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: inherit; text-align: left; cursor: pointer; }
-.print-card:hover { border-color: #3182ce; background: #ebf8ff; }.print-card > img { width: 58px; align-self: flex-start; border-radius: 4px; }
+.print-card:hover { border-color: #3182ce; background: #ebf8ff; }.print-card > img { width: 58px; aspect-ratio: 63 / 88; object-fit: cover; align-self: flex-start; border-radius: 4px; background: #e2e8f0 url('/api/images/placeholder.jpg') center / cover no-repeat; }
 .print-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }.print-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .print-info small { color: #718096; text-transform: capitalize; }.print-set { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }.print-set img { width: 14px; height: 14px; }
 .prints-state { padding: 24px; text-align: center; color: #718096; background: #f7fafc; border-radius: 8px; }

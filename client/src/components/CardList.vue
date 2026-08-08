@@ -21,7 +21,7 @@
           <td>{{ card.type_line }}</td>
           <td><img v-if="card.setIcon" :src="card.setIcon" class="set-icon" :alt="card.set_name" /> {{ card.set_name }} ({{ card.set.toUpperCase() }})</td>
           <td :class="['rarity', card.rarity]">{{ card.rarity }}</td>
-          <td><span v-if="card.isSaved" class="saved-label" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></span><button v-else class="quick-add" @click.stop="$emit('quick-add', card)">Quick add</button></td>
+          <td class="row-actions"><a v-if="isCreatureCard(card)" class="edhrec-link" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" @click.stop>EDHREC</a><span v-if="card.isSaved" class="saved-label" :title="card.savedCollection">Saved<span v-if="card.savedCollection"> · {{ card.savedCollection }}</span></span><button v-else class="quick-add" @click.stop="$emit('quick-add', card)">Quick add</button></td>
         </tr>
       </tbody>
     </table>
@@ -29,6 +29,8 @@
 </template>
 
 <script setup>
+import { edhrecCommanderUrl, isCreatureCard } from '../utils/edhrec';
+
 const props = defineProps({
   cards: {
     type: Array,
@@ -89,5 +91,7 @@ th {
 .rare { color: #b7791f; }
 .mythic { color: #c53030; }
 .quick-add{border:1px solid #3182ce;background:white;color:#3182ce;border-radius:4px;padding:5px 10px;cursor:pointer}
+.row-actions{display:flex;align-items:center;gap:8px}
+.edhrec-link{border:1px solid #805ad5;color:#6b46c1;border-radius:4px;padding:5px 8px;text-decoration:none;font-size:12px}
 .saved-label{display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#276749;font-weight:700}
 </style>

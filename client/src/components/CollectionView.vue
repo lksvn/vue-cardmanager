@@ -73,6 +73,7 @@
           </div>
         </div>
         <div class="card-actions">
+          <a v-if="isCreatureCard(card)" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" class="btn-edhrec" title="View commander decks on EDHREC">EDHREC</a>
           <button @click="searchCard(card)" class="btn-search" title="Search all printings">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
@@ -108,6 +109,7 @@ import EditCardModal from './EditCardModal.vue';
 import { useTagsStore } from '../stores/tags';
 import { useUiStore } from '../stores/ui';
 import { useRoute, useRouter } from 'vue-router';
+import { edhrecCommanderUrl, isCreatureCard } from '../utils/edhrec';
 
 const savedCards = ref([]);
 const loading = ref(true);
@@ -342,7 +344,7 @@ onMounted(async () => {
 
 .card-preview {
   height: 200px;
-  background: #edf2f7;
+  background: #edf2f7 url('/api/images/placeholder.jpg') center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -408,7 +410,7 @@ onMounted(async () => {
   gap: 5px;
 }
 
-.btn-delete, .btn-edit, .btn-search {
+.btn-delete, .btn-edit, .btn-search, .btn-edhrec {
   background: rgba(255, 255, 255, 0.9);
   border: none;
   border-radius: 4px;
@@ -427,6 +429,13 @@ onMounted(async () => {
 
 .btn-edit {
   color: #3182ce;
+}
+
+.btn-edhrec {
+  color: #6b46c1;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .btn-search { color: #2f855a; }
@@ -456,4 +465,5 @@ onMounted(async () => {
 }
 
 .btn-search:hover { background: #2f855a; color: white; }
+.btn-edhrec:hover { background: #6b46c1; color: white; }
 </style>

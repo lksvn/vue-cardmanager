@@ -18,13 +18,18 @@
 			</div>
 			<div class="card-info">
 				<p class="card-name">{{ card.name }} <span>({{ card.set }})</span></p>
-				<button class="quick-add" :disabled="card.isSaved" @click.stop="$emit('quick-add', card)">{{ card.isSaved ? 'Already saved' : 'Quick add' }}</button>
+				<div class="card-actions">
+					<a v-if="isCreatureCard(card)" class="edhrec-link" :href="edhrecCommanderUrl(card)" target="_blank" rel="noreferrer" @click.stop>EDHREC</a>
+					<button class="quick-add" :disabled="card.isSaved" @click.stop="$emit('quick-add', card)">{{ card.isSaved ? 'Already saved' : 'Quick add' }}</button>
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
+import { edhrecCommanderUrl, isCreatureCard } from '../utils/edhrec';
+
 const props = defineProps({
 	cards: {
 		type: Array,
@@ -70,12 +75,16 @@ const getCardImage = (card) => {
 
 .img-wrapper {
 	width: calc(100% - 2px);
+	aspect-ratio: 63 / 88;
 	overflow: hidden;
 	border-radius: 10px;
 	margin: 1px;
+	background: #e2e8f0 url('/api/images/placeholder.jpg') center / cover no-repeat;
 }
 .card-image {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
@@ -92,6 +101,8 @@ const getCardImage = (card) => {
   overflow: hidden;
 }
 .card-name span {text-transform: uppercase;}
-.quick-add{margin-top:8px;border:1px solid #3182ce;background:white;color:#3182ce;border-radius:4px;padding:5px 10px;cursor:pointer}
+.card-actions{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:8px}
+.edhrec-link{border:1px solid #805ad5;color:#6b46c1;border-radius:4px;padding:5px 10px;text-decoration:none;font-size:13px}
+.quick-add{border:1px solid #3182ce;background:white;color:#3182ce;border-radius:4px;padding:5px 10px;cursor:pointer}
 .quick-add:disabled{border-color:#38a169;color:#276749;cursor:default}.saved-badge{position:absolute;z-index:1;top:9px;left:9px;max-width:calc(100% - 34px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#276749;color:white;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;box-shadow:0 2px 6px #0005}
 </style>
