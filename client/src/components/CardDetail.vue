@@ -122,6 +122,7 @@
                         <span class="print-info">
                             <strong>{{ print.set_name }}</strong>
                             <span class="print-set"><img :src="getPrintSetIcon(print)" alt="" />{{ print.set.toUpperCase() }} #{{ print.collector_number }}</span>
+                            <span v-if="findSavedPrinting(print)" class="print-saved" :title="findSavedPrinting(print).Collection || 'Saved'">Saved</span>
                             <small>{{ formatReleaseDate(print.released_at) }} · {{ print.rarity }}</small>
                             <small>{{ formatPrintFinishes(print.finishes) }}</small>
                         </span>
@@ -152,6 +153,10 @@ const props = defineProps({
     tags: {
         type: Object,
         default: () => ({ collections: [], groups: [], types: [] })
+    },
+    savedPrintings: {
+        type: Array,
+        default: () => []
     }
 });
 
@@ -287,6 +292,11 @@ const fetchPrints = async () => {
 };
 const getPrintImage = print => print.image_uris?.small || print.image_uris?.normal || print.card_faces?.[0]?.image_uris?.small || 'placeholder.jpg';
 const getPrintSetIcon = print => apiAssetUrl(`/api/sets/${encodeURIComponent(print.set)}/icon`);
+const findSavedPrinting = print => props.savedPrintings.find(saved =>
+    (saved.ScryfallId && saved.ScryfallId === print.id) ||
+    (String(saved.SetCode || '').toLowerCase() === String(print.set || '').toLowerCase() &&
+        String(saved.CollectorNumber || saved.Number || '').toLowerCase() === String(print.collector_number || '').toLowerCase())
+);
 const formatReleaseDate = value => value ? new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T00:00:00`)) : 'Unknown date';
 const formatPrintFinishes = finishes => finishes?.length ? finishes.map(finish => finish.toUpperCase()).join(' · ') : 'NONFOIL';
 const searchPrint = (print) => {
@@ -610,6 +620,7 @@ p {margin-top:0;}
 .print-card:hover { border-color: #3182ce; background: #ebf8ff; }.print-card > img { width: 58px; aspect-ratio: 63 / 88; object-fit: cover; align-self: flex-start; border-radius: 4px; background: #e2e8f0 url('/api/images/placeholder.jpg') center / cover no-repeat; }
 .print-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }.print-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .print-info small { color: #718096; text-transform: capitalize; }.print-set { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }.print-set img { width: 14px; height: 14px; }
+.print-saved { align-self: flex-start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 6px; border-radius: 999px; background: #c6f6d5; color: #276749; font-size: 11px; font-weight: 700; }
 .prints-state { padding: 24px; text-align: center; color: #718096; background: #f7fafc; border-radius: 8px; }
 .view-all-prints { margin-top: 10px; padding: 9px; border: 1px solid #3182ce; border-radius: 6px; background: white; color: #3182ce; cursor: pointer; }
 .adventure-faces { display: grid; gap: 14px; }

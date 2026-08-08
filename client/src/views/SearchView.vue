@@ -14,7 +14,7 @@
   </div>
   <div v-else-if="searched" class="no-results">No cards found for “{{ query }}”.</div>
   <div v-else class="welcome">Start by searching for a Magic: The Gathering card!</div>
-  <CardDetail v-if="selectedCard" :card="selectedCard" :tags="tagsStore.tags" @close="selectedCard = null" @update:search="performSearch" @select-print="selectPrint" @save-success="onSaveSuccess(selectedCard)" />
+  <CardDetail v-if="selectedCard" :card="selectedCard" :tags="tagsStore.tags" :saved-printings="savedPrintingList" @close="selectedCard = null" @update:search="performSearch" @select-print="selectPrint" @save-success="onSaveSuccess(selectedCard)" />
 </template>
 
 <script setup>
@@ -36,6 +36,7 @@ const cards = ref([]); const loading = ref(false); const loadingMore = ref(false
 const selectedCard = ref(null); const hasMore = ref(false); const nextPageUrl = ref(null); const error = ref('');
 const totalResults = ref(0);
 const savedCards = ref(new Map());
+const savedPrintingList = computed(() => [...new Set(savedCards.value.values())]);
 const savingQuery = ref(false);
 const savedQueries = ref([]);
 const queriesLoading = ref(false);
